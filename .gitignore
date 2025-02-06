@@ -1,0 +1,31 @@
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+Logs/
+UserSettings/
+
+# User specific
+UserSettings/
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# Unity3D generated file
+Temp/
+*.unityPackage
+
+# Packages #
+Packages/
+
+# Visual Studio files
+.vscode/
+*.csproj
+*.meta
+
+# git files
+.git/
+
