@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace FMGUnity.Utility
 {
+    [System.Serializable]
     public class VoronoiCell
     {
-        public Vector2 Site; // Voronoi site
-        public List<Vector2> Vertices; // Cell vertices
-        public HashSet<VoronoiCell> Neighbors { get; } // Adjacent cells
+        [SerializeField] public Vector2 Site; // Voronoi site
+        [SerializeField] public List<Vector2> Vertices; // Cell vertices
+        [SerializeField] public HashSet<VoronoiCell> Neighbors { get; } // Adjacent cells
 
         public VoronoiCell(Vector2 site)
         {

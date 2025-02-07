@@ -5,14 +5,15 @@ namespace FMGUnity.Utility
     using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Triangle
 {
     // Vertices of the triangle
-    public Vector2[] Vertices { get; private set; }
+    [SerializeField] public Vector2[] Vertices { get; private set; }
 
     // Cached circumcenter and circumradius
-    private Vector2? _circumcenter;
-    private float? _circumradiusSquared;
+    [SerializeField] private Vector2? _circumcenter;
+    [SerializeField] private float? _circumradiusSquared;
 
     public Triangle(Vector2 v1, Vector2 v2, Vector2 v3)
     {

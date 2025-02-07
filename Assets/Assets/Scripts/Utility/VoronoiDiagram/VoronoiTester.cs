@@ -11,7 +11,8 @@ namespace FMGUnity.Utility
         [Header("Settings")]
         public int pointCount = 100;      // Number of points for the Voronoi diagram
         public Vector2Int size = new(256, 256); // Size of the texture/map (width and height)
-        public int seed = 42;             // Random seed for point generation
+        public bool RandomSeed = false;
+        public int seed = 42; // Random seed for point generation
 
         [SerializeField]
         private VoronoiDiagram voronoiMap;    // The Voronoi map
@@ -19,20 +20,12 @@ namespace FMGUnity.Utility
         private MeshRenderer meshRenderer; // Optional MeshRenderer for the plane
         private List<VoronoiCell> voronoiCells; // List of generated Voronoi cells
 
-        private Dictionary<Vector2Int, VoronoiCell> pixelToCellMap; // Maps each pixel to a cell
+        private Dictionary<Vector2Int, VoronoiCell> pixelToCellMap = new(); // Maps each pixel to a cell
         private VoronoiCell hoveredCell; // The cell currently being hovered over
 
-        void Start()
-        {
+        void Start() => GenerateVisualization();
 
-            GenerateVisualization();
-            
-        }
-
-        void Update()
-        {
-            HandleMouseHover();
-        }
+        void Update() => HandleMouseHover();
 
         void OnGUI()
         {
@@ -47,16 +40,14 @@ namespace FMGUnity.Utility
         [Button("Generate")]
         void GenerateVisualization()
         {
+            if (voronoiMap != null && voronoiMap.IsInitialized()) return;
             // Check if the GameObject has a MeshRenderer for visualization on a plane
             meshRenderer = GetComponent<MeshRenderer>();
 
-            // Initialize and generate the Voronoi map
-            voronoiMap = new(size, seed, seed);
-            
-            
+            if (RandomSeed) seed = Random.Range(1, 10000);
 
-            // Store the Voronoi cells for visualization
-            voronoiCells = voronoiMap.GetCells();
+            // Initialize and generate the Voronoi map
+            voronoiMap = new(size, pointCount, seed);
 
             if (meshRenderer != null)
             {
@@ -64,12 +55,6 @@ namespace FMGUnity.Utility
                 GenerateVoronoiTexture();
                 ApplyTextureToPlane();
             }
-        }
-
-        [Button("Regenerate")]
-        void Regenerate()
-        {
-            voronoiMap.Generate(true);
         }
 
         [Button("Clear Visualization")]
@@ -85,22 +70,28 @@ namespace FMGUnity.Utility
         [Button("Clear Diagram")]
         void ClearDiagram()
         {
-            voronoiMap.Clear();
+            voronoiMap?.Clear();
+            ClearVisualization();
         }
 
         void GenerateVoronoiTexture()
         {
-            // Create a new texture based on the size
-            voronoiTexture = new Texture2D((int)size.x, (int)size.y);
-            voronoiTexture.filterMode = FilterMode.Point; // Ensure sharp edges
-            voronoiTexture.wrapMode = TextureWrapMode.Clamp; // Clamp edges
+            // Reset texture and pixel map
+            voronoiTexture = null;
+            pixelToCellMap?.Clear();
 
-            // Initialize the pixel-to-cell mapping
-            pixelToCellMap = new Dictionary<Vector2Int, VoronoiCell>();
+            Dictionary<VoronoiCell, Color> cellColors = new();
+            
+            // Create a new texture based on the size
+            voronoiTexture = new((int)size.x, (int)size.y)
+            {
+                filterMode = FilterMode.Point, // Ensure sharp edges
+                wrapMode = TextureWrapMode.Clamp // Clamp edges
+            };
+
 
             // Generate unique colors for each cell
-            Dictionary<VoronoiCell, Color> cellColors = new Dictionary<VoronoiCell, Color>();
-            foreach (var cell in voronoiCells)
+            foreach (var cell in voronoiMap.Cells)
             {
                 cellColors[cell] = new Color(Random.value, Random.value, Random.value);
             }
@@ -111,7 +102,7 @@ namespace FMGUnity.Utility
                 for (int y = 0; y < voronoiTexture.height; y++)
                 {
                     Vector2 point = new Vector2(x, y);
-                    VoronoiCell closestCell = FindClosestCell(point, voronoiCells);
+                    VoronoiCell closestCell = FindClosestCell(point, voronoiMap.Cells);
 
                     // Map the pixel to the cell
                     pixelToCellMap[new Vector2Int(x, y)] = closestCell;

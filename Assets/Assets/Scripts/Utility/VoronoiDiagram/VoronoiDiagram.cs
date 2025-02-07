@@ -5,10 +5,14 @@ using Codice.Client.BaseCommands;
 
 namespace FMGUnity.Utility
 {
+    [System.Serializable]
     public class VoronoiDiagram
     {
+        [SerializeField]
         private List<Vector2> _points     = new();
+        [SerializeField]
         private List<Triangle> _triangles = new();
+        [SerializeField]
         private List<VoronoiCell> _cells  = new();
 
         public List<Vector2> Points => _points;
@@ -34,7 +38,7 @@ namespace FMGUnity.Utility
 
         public VoronoiDiagram Generate(bool regenerate = false)
         {
-            if (regenerate)
+            if (regenerate && IsInitialized())
             {
                 Clear();
             }
@@ -84,6 +88,7 @@ namespace FMGUnity.Utility
             _cells.Clear();
         }
 
+        public bool IsInitialized() => !(_points.Count == 0 || _triangles.Count == 0 || _cells.Count == 0);
 
         /// <summary>
         /// Generates a Voronoi diagram from a given set of Delaunay triangles and points.
