@@ -27,9 +27,9 @@ public class Triangle
     {
         return new List<Edge>
         {
-            new Edge(Vertices[0], Vertices[1]),
-            new Edge(Vertices[1], Vertices[2]),
-            new Edge(Vertices[2], Vertices[0])
+            new(Vertices[0], Vertices[1]),
+            new(Vertices[1], Vertices[2]),
+            new(Vertices[2], Vertices[0])
         };
     }
 

@@ -27,16 +27,22 @@ namespace FMGUnity.Utility
                     {
                         badTriangles.Add(triangle);
                     }
-                }
+                }   
+
+                Debug.Log($"Bad triangles identified: {badTriangles.Count}");
 
                 // Step 4: Find the polygonal hole boundary (edges not shared by two bad triangles)
                 var polygon = FindHoleBoundary(badTriangles);
+
+                Debug.Log($"Edges in hole boundary: {polygon.Count}");
 
                 // Step 5: Remove the bad triangles from the triangulation
                 foreach (var badTriangle in badTriangles)
                 {
                     triangles.Remove(badTriangle);
                 }
+
+                Debug.Log($"Bad Triangles removed: {triangles.Count}");
 
                 // Step 6: Add new triangles connecting the point to each edge of the polygon
                 foreach (var edge in polygon)
@@ -51,7 +57,7 @@ namespace FMGUnity.Utility
                 ContainsVertex(t, superTriangle.Vertices[1]) ||
                 ContainsVertex(t, superTriangle.Vertices[2])
             );
-
+            Debug.Log($"Total Triangles (post super-triangle removal): {triangles.Count}");
             return triangles;
         }
 
@@ -94,33 +100,42 @@ namespace FMGUnity.Utility
             float cx = v3.x - point.x;
             float cy = v3.y - point.y;
 
-            float det = (ax * (by * cy - by * cy)) -
-                        (bx * (ay * cy - ay * cy)) +
-                        (cx * (ay * by - ay * by));
+            float det = (ax * (by * cy - bx * cy)) -
+                        (bx * (ay * cy - cx * cy)) +
+                        (cx * (ay * by - bx * by));
+            Debug.Log($"Checking circumcircle: {point}, Triangle {triangle} -> {det}");
             return det > 0;
         }
 
         private static List<Edge> FindHoleBoundary(List<Triangle> badTriangles)
         {
-            var edges = new List<Edge>();
+            Dictionary<Edge, int> edgeUsage = new();
 
             foreach (var triangle in badTriangles)
             {
                 foreach (var edge in triangle.GetEdges())
                 {
-                    // Add edges if they're not shared by two triangles
-                    if (edges.Contains(edge))
+                    if (edgeUsage.ContainsKey(edge))
                     {
-                        edges.Remove(edge);
+                        edgeUsage[edge]++;
                     }
                     else
                     {
-                        edges.Add(edge);
+                        edgeUsage[edge] = 1;
                     }
                 }
             }
 
-            return edges;
+            var polygon = new List<Edge>();
+            foreach (var edge in edgeUsage)
+            {
+                if (edge.Value == 1)  // Only keep edges that are not shared
+                {
+                    polygon.Add(edge.Key);
+                }
+            }
+
+            return polygon;
         }
 
         private static bool ContainsVertex(Triangle triangle, Vector2 vertex)

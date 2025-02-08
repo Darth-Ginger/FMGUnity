@@ -2,28 +2,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
 using Codice.Client.BaseCommands;
+using System.Linq;
 
 namespace FMGUnity.Utility
 {
     [System.Serializable]
     public class VoronoiDiagram
     {
-        [SerializeField]
-        private List<Vector2> _points     = new();
-        [SerializeField]
-        private List<Triangle> _triangles = new();
-        [SerializeField]
-        private List<VoronoiCell> _cells  = new();
+        [SerializeField] private List<Vector2>     _points = new();
+        [SerializeField] private List<Triangle>    _triangles = new();
+        [SerializeField] private List<VoronoiCell> _cells = new();
+        [SerializeField] private List<VoronoiEdge> _edges = new();
 
-        public List<Vector2> Points => _points;
-        public List<Triangle> Triangles => _triangles;
-        public List<VoronoiCell> Cells => _cells;
+        public List<Vector2>     Points     => _points;
+        public List<Triangle>    Triangles  => _triangles;
+        public List<VoronoiCell> Cells      => _cells;
         public List<VoronoiCell> GetCells() => _cells;
+        public List<VoronoiEdge> Edges      => _edges;
 
         [Header("Voronoi Diagram Settings")]
-        public Vector2Int MapBounds { get; private set;}
-        public int Seed { get; private set; }
-        public int PointCount { get; private set; }
+        public Vector2Int MapBounds { get; private set; }
+        public int Seed             { get; private set; }
+        public int PointCount       { get; private set; }
 
         public VoronoiDiagram(Vector2Int mapBounds, int pointCount = 100, int seed = 42)
         {
@@ -50,7 +50,7 @@ namespace FMGUnity.Utility
             _triangles = DelaunayTriangulation.Generate(_points);
 
             // Generate Voronoi diagram
-            _cells = GenerateDiagram(_triangles, _points);
+            GenerateDiagram(_triangles, _points);
 
             return this;
         }
@@ -63,7 +63,7 @@ namespace FMGUnity.Utility
         /// <param name="regenerate">Whether to regenerate existing points.</param>
         public void GeneratePoints(int count, bool regenerate = false)
         {
-            if (regenerate || _points.Count <= 0) 
+            if (regenerate || _points.Count <= 0)
             {
                 _points.Clear();
                 Random.InitState(Seed);
@@ -101,9 +101,9 @@ namespace FMGUnity.Utility
         ///     corresponding Voronoi cells based on triangle vertices. It also establishes adjacency
         ///     relationships between neighboring Voronoi cells.
         /// </remarks>
-        public List<VoronoiCell> GenerateDiagram(List<Triangle> delaunayTriangles, List<Vector2> points, bool regenerate = false)
+        public void GenerateDiagram(List<Triangle> delaunayTriangles, List<Vector2> points, bool regenerate = false)
         {
-            if (!regenerate && delaunayTriangles.Count > 0) return _cells;
+            if (!regenerate && _cells.Count > 0) return;
 
             // Create a dictionary to store the cells
             var cells = new Dictionary<Vector2, VoronoiCell>();
@@ -115,64 +115,41 @@ namespace FMGUnity.Utility
             }
 
             // Store edges to track shared ones
-            Dictionary<Edge, List<VoronoiCell>> edgeToCells = new();
+            Dictionary<Edge, VoronoiEdge> edgeMap = new();
 
-            // Iterate through each Delaunay triangle to compute circumcenters
             foreach (var triangle in delaunayTriangles)
             {
-                // Compute the circumcenter of the triangle
                 Vector2 circumcenter = ComputeCircumcenter(triangle);
 
-                // Assign the circumcenter to all three vertices (sites) of the triangle
-                foreach (var vertex in triangle.Vertices)
+                foreach (var edge in triangle.GetEdges())
                 {
-                    // Add the circumcenter to the Voronoi cell for the corresponding site
-                    if (cells.ContainsKey(vertex))
+                    if (!edgeMap.ContainsKey(edge))
                     {
-                        cells[vertex].Vertices.Add(circumcenter);
-                    }
-                }
-                // Add triangle edges to edgeToCells
-                var edges = triangle.GetEdges();
-                foreach (var edge in edges)
-                {
-                    if (!edgeToCells.ContainsKey(edge))
-                    {
-                        edgeToCells[edge] = new List<VoronoiCell>();
+                        edgeMap[edge] = new VoronoiEdge(edge.Start, edge.End);
                     }
 
                     foreach (var vertex in triangle.Vertices)
                     {
                         if (cells.TryGetValue(vertex, out VoronoiCell cell))
                         {
-                            if (!edgeToCells[edge].Contains(cell))
+                            if (edgeMap[edge].LeftCell == null)
                             {
-                                edgeToCells[edge].Add(cell);
+                                edgeMap[edge].LeftCell = cell;
+                                edgeMap[edge].LeftCell.AddNeighbor(edgeMap[edge].RightCell);
+                            }
+                            else
+                            {
+                                edgeMap[edge].RightCell = cell;
+                                edgeMap[edge].RightCell.AddNeighbor(edgeMap[edge].LeftCell);
                             }
                         }
                     }
                 }
             }
 
-            // Connect circumcenters to form edges (optional visualization)
-            foreach (var cell in cells.Values)
-            {
-                OrderVertices(cell); // Order the vertices in a clockwise manner
-            }
-
-            // Establish adjacency relationships
-            foreach (var pair in edgeToCells)
-            {
-                var adjacentCells = pair.Value;
-                if (adjacentCells.Count == 2)
-                {
-                    adjacentCells[0].AddNeighbor(adjacentCells[1]);
-                    adjacentCells[1].AddNeighbor(adjacentCells[0]);
-                }
-            }
-
-            // Return the Voronoi cells
-            return new List<VoronoiCell>(cells.Values);
+            // Set the Cells and Edges lists
+            _cells = cells.Values.ToList();
+            _edges = edgeMap.Values.ToList();
         }
 
         /// <summary>
@@ -233,5 +210,12 @@ namespace FMGUnity.Utility
                 return angle1.CompareTo(angle2);
             });
         }
+    
+        public override string ToString()
+        {
+            return $"VoronoiDiagram: Points= {Points.Count}, Triangles= {Triangles.Count}, Cells= {Cells.Count}, Edges= {Edges.Count}";
+        }
+
+        public string ToJson() => $"{{\"bounds\": {MapBounds}, \"seed\": {Seed}, \"pointCount\": {PointCount}, \"points\": {Points}, \"triangles\": {Triangles}, \"cells\": {Cells}, \"edges\": {Edges}}}";
     }
 }

@@ -28,7 +28,17 @@ namespace FMGUnity.Utility
 
         public override string ToString()
         {
-            return $"VoronoiCell: Site={Site}, Vertices={Vertices.Count}";
+            string neighbors = "";
+            foreach (var neighbor in Neighbors)
+            {
+                neighbors += neighbor.Site + ", ";
+            }
+            return $"VoronoiCell: Site= {Site}, Vertices= {Vertices.Count}, Neighbors({Neighbors.Count})= {neighbors}";
+        }
+
+        public string ToJson()
+        {
+            return $"{{\"site\": {Site}, \"vertices\": {Vertices}, \"neighbors\": {Neighbors}}}";
         }
     }
 }

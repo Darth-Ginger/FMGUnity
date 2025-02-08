@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
+using UnityEditor;
+using System.IO;
 
 namespace FMGUnity.Utility
 {
@@ -74,6 +76,19 @@ namespace FMGUnity.Utility
             ClearVisualization();
         }
 
+        
+        [Button("Save Diagram")]
+        void SaveDiagram()
+        {
+            string path = EditorUtility.SaveFilePanel("Save Voronoi Diagram", "", $"voronoi-diagram-{size.x}x{size.y}-{pointCount}-{seed}", "json");
+            if (path.Length != 0)
+            {
+                string serialized = JsonUtility.ToJson(voronoiMap);
+                File.WriteAllText(path, serialized);
+                Debug.Log("Voronoi diagram saved to " + path);
+            }
+        }
+
         void GenerateVoronoiTexture()
         {
             // Reset texture and pixel map
@@ -94,6 +109,13 @@ namespace FMGUnity.Utility
             foreach (var cell in voronoiMap.Cells)
             {
                 cellColors[cell] = new Color(Random.value, Random.value, Random.value);
+            }
+
+            // Guard against empty cells list
+            if (voronoiMap.Cells.Count == 0) 
+            {
+                Debug.LogWarning("No cells found in the Voronoi diagram.");
+                return;
             }
 
             // Fill the texture based on the Voronoi cells
