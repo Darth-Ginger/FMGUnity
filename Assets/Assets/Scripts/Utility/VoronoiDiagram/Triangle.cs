@@ -1,13 +1,17 @@
+using FMGUnity.Utility.Interfaces;
 using UnityEngine;
 
 namespace FMGUnity.Utility
 {
+    using System;
     using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class Triangle
+public class Triangle: IIdentifiable
 {
+    public Guid Id { get; private set; }
+
     // Vertices of the triangle
     [SerializeField] public Vector2[] Vertices { get; private set; }
 
@@ -17,6 +21,7 @@ public class Triangle
 
     public Triangle(Vector2 v1, Vector2 v2, Vector2 v3)
     {
+        Id = Guid.NewGuid();
         Vertices = new Vector2[] { v1, v2, v3 };
     }
 

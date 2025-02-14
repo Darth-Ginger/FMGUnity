@@ -1,10 +1,14 @@
+using System;
 using UnityEngine;
+using NaughtyAttributes;
+using FMGUnity.Utility.Interfaces;
 
 namespace FMGUnity.Utility
 {
     [System.Serializable]
-    public class VoronoiEdge
+    public class VoronoiEdge: IIdentifiable
     {
+        public Guid Id { get; private set; }
         [SerializeField] public Vector2 Start { get; }
         [SerializeField] public Vector2 End { get; }
         [SerializeField] public VoronoiCell LeftCell { get; set; } // The cell on the left
@@ -12,6 +16,7 @@ namespace FMGUnity.Utility
 
         public VoronoiEdge(Vector2 start, Vector2 end)
         {
+            Id = Guid.NewGuid();
             Start = start;
             End = end;
         }

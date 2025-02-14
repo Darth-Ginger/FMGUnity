@@ -20,7 +20,6 @@ namespace FMGUnity.Utility
         private VoronoiDiagram voronoiMap;    // The Voronoi map
         private Texture2D voronoiTexture; // Texture to render the map
         private MeshRenderer meshRenderer; // Optional MeshRenderer for the plane
-        private List<VoronoiCell> voronoiCells; // List of generated Voronoi cells
 
         private Dictionary<Vector2Int, VoronoiCell> pixelToCellMap = new(); // Maps each pixel to a cell
         private VoronoiCell hoveredCell; // The cell currently being hovered over
@@ -42,7 +41,7 @@ namespace FMGUnity.Utility
         [Button("Generate")]
         void GenerateVisualization()
         {
-            if (voronoiMap != null && voronoiMap.IsInitialized()) return;
+
             // Check if the GameObject has a MeshRenderer for visualization on a plane
             meshRenderer = GetComponent<MeshRenderer>();
 
@@ -65,7 +64,7 @@ namespace FMGUnity.Utility
             if (meshRenderer != null)
             {
                 // Clear the texture from the plane
-                meshRenderer.material.mainTexture = null;
+                meshRenderer.material.mainTexture = Resources.Load<Texture>("Sprites/Default");
             }
         }
 

@@ -1,24 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
-using Codice.Client.BaseCommands;
 using System.Linq;
+using System;
+using Random = UnityEngine.Random;
+using FMGUnity.Utility.Interfaces;
 
 namespace FMGUnity.Utility
 {
     [System.Serializable]
     public class VoronoiDiagram
     {
-        [SerializeField] private List<Vector2>     _points = new();
-        [SerializeField] private List<Triangle>    _triangles = new();
-        [SerializeField] private List<VoronoiCell> _cells = new();
-        [SerializeField] private List<VoronoiEdge> _edges = new();
 
-        public List<Vector2>     Points     => _points;
-        public List<Triangle>    Triangles  => _triangles;
-        public List<VoronoiCell> Cells      => _cells;
-        public List<VoronoiCell> GetCells() => _cells;
-        public List<VoronoiEdge> Edges      => _edges;
+        public List<Triangle> Triangles      => _triangleMap.List ?? new();
+        public List<VoronoiPoint> Points     => _pointMap.List ?? new();
+        public List<VoronoiCell>  Cells      => _cellMap.List ?? new();
+        public List<VoronoiCell>  GetCells() => Cells;
+        public List<VoronoiEdge>  Edges      => _edgeMap.List ?? new();
+
+        // Object -> Index Mappings
+        private IndexMap<Triangle>     _triangleMap = new();
+        private IndexMap<VoronoiPoint> _pointMap    = new();
+        private IndexMap<VoronoiCell>  _cellMap     = new();
+        private IndexMap<VoronoiEdge>  _edgeMap    = new();
+
+
 
         [Header("Voronoi Diagram Settings")]
         public Vector2Int MapBounds { get; private set; }
@@ -38,19 +44,19 @@ namespace FMGUnity.Utility
 
         public VoronoiDiagram Generate(bool regenerate = false)
         {
-            if (regenerate && IsInitialized())
-            {
-                Clear();
-            }
+            if (!regenerate && IsInitialized()) return this;
+            
+            
+            Clear();
 
             // Generate random points
             GeneratePoints(PointCount);
 
             // Generate Delaunay triangulation
-            _triangles = DelaunayTriangulation.Generate(_points);
+            _triangleMap = new(DelaunayTriangulation.Generate(Points.Select(p => p.Position).ToList()));
 
             // Generate Voronoi diagram
-            GenerateDiagram(_triangles, _points);
+            GenerateDiagram();
 
             return this;
         }
@@ -63,14 +69,14 @@ namespace FMGUnity.Utility
         /// <param name="regenerate">Whether to regenerate existing points.</param>
         public void GeneratePoints(int count, bool regenerate = false)
         {
-            if (regenerate || _points.Count <= 0)
+            if (regenerate || _pointMap.List.Count <= 0)
             {
-                _points.Clear();
+                _pointMap.Clear();
                 Random.InitState(Seed);
 
                 for (int i = 0; i < count; i++)
                 {
-                    _points.Add(new Vector2(
+                    _pointMap.Add(new VoronoiPoint(
                         Random.Range(0, MapBounds.x),
                         Random.Range(0, MapBounds.y)
                     ));
@@ -83,41 +89,43 @@ namespace FMGUnity.Utility
         /// </summary>
         public void Clear()
         {
-            _points.Clear();
-            _triangles.Clear();
-            _cells.Clear();
+            _pointMap?.Clear();
+            _triangleMap?.Clear();
+            _cellMap?.Clear();
+            _edgeMap?.Clear();
         }
 
-        public bool IsInitialized() => !(_points.Count == 0 || _triangles.Count == 0 || _cells.Count == 0);
+        public bool IsInitialized() => !(Points == null || Triangles == null || Cells == null || Edges == null) &&
+                                      !(Points.Count == 0 || Triangles.Count == 0 || Cells.Count == 0 || Edges.Count == 0);
 
         /// <summary>
         /// Generates a Voronoi diagram from a given set of Delaunay triangles and points.
         /// </summary>
-        /// <param name="delaunayTriangles">The list of Delaunay triangles used to generate the Voronoi cells.</param>
-        /// <param name="points">The list of points that serve as sites for the Voronoi cells.</param>
+        /// <param name="regenerate">Whether to regenerate the Voronoi diagram.</param>
         /// <returns>A list of Voronoi cells, each representing a region around a point site.</returns>
         /// <remarks>
         ///     This method computes the circumcenters of each Delaunay triangle and assigns them to the
         ///     corresponding Voronoi cells based on triangle vertices. It also establishes adjacency
         ///     relationships between neighboring Voronoi cells.
         /// </remarks>
-        public void GenerateDiagram(List<Triangle> delaunayTriangles, List<Vector2> points, bool regenerate = false)
+        private void GenerateDiagram( bool regenerate = false)
         {
-            if (!regenerate && _cells.Count > 0) return;
+
+            if (!regenerate && _cellMap.List.Count > 0) return;
 
             // Create a dictionary to store the cells
             var cells = new Dictionary<Vector2, VoronoiCell>();
 
             // Initialize cells for each point
-            foreach (var point in points)
+            foreach (var point in _pointMap.List)
             {
-                cells[point] = new VoronoiCell(point);
+                cells[point.Position] = new VoronoiCell(point.Position);
             }
 
             // Store edges to track shared ones
             Dictionary<Edge, VoronoiEdge> edgeMap = new();
 
-            foreach (var triangle in delaunayTriangles)
+            foreach (var triangle in _triangleMap.List)
             {
                 Vector2 circumcenter = ComputeCircumcenter(triangle);
 
@@ -148,8 +156,8 @@ namespace FMGUnity.Utility
             }
 
             // Set the Cells and Edges lists
-            _cells = cells.Values.ToList();
-            _edges = edgeMap.Values.ToList();
+            _cellMap = new(cells.Values.ToList());
+            _edgeMap = new(edgeMap.Values.ToList());
         }
 
         /// <summary>
