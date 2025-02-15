@@ -31,7 +31,7 @@ namespace FMGUnity.Utility
         public int Seed             { get; private set; }
         public int PointCount       { get; private set; }
 
-        public VoronoiDiagram(Vector2Int mapBounds, int pointCount = 100, int seed = 42)
+        public VoronoiDiagram(Vector2Int mapBounds, int pointCount = 100, int seed = 42, bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
         {
             MapBounds = mapBounds;
             Seed = seed;
@@ -39,10 +39,10 @@ namespace FMGUnity.Utility
 
             Random.InitState(Seed);
 
-            Generate();
+            Generate(regenerate, useMultiThreading, maxThreads);
         }
 
-        public VoronoiDiagram Generate(bool regenerate = false)
+        public VoronoiDiagram Generate(bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
         {
             if (!regenerate && IsInitialized()) return this;
             
@@ -53,7 +53,16 @@ namespace FMGUnity.Utility
             GeneratePoints(PointCount);
 
             // Generate Delaunay triangulation
-            _triangleMap = new(DelaunayTriangulation.Generate(Points.Select(p => p.Position).ToList()));
+            if (!useMultiThreading || maxThreads <= 1)
+            {
+                Debug.Log("Generating Delaunay Triangulation in a single thread");
+                _triangleMap = new(DelaunayTriangulation.Generate(Points.Select(p => p.Position).ToList()));
+            }
+            else{
+                Debug.Log($"Generating Delaunay Triangulation in {maxThreads} threads");
+                Rect bounds = new Rect(0, 0, MapBounds.x, MapBounds.y);
+                _triangleMap = new(DelaunayTriangulation.GenerateInThreads(Points.Select(p => p.Position).ToList(), bounds, maxThreads));
+            }
 
             // Generate Voronoi diagram
             GenerateDiagram();
@@ -133,6 +142,7 @@ namespace FMGUnity.Utility
                 {
                     if (!edgeMap.ContainsKey(edge))
                     {
+                        //TODO: Update the GetEdges to return VoronoiEdges or find a way to map edge back to VoronoiEdge
                         edgeMap[edge] = new VoronoiEdge(edge.Start, edge.End);
                     }
 
@@ -190,7 +200,7 @@ namespace FMGUnity.Utility
 
             // Solve for intersection of two lines: midAB + t * perpAB = midBC + s * perpBC
             float t = (midBC.x - midAB.x) * perpBC.y - (midBC.y - midAB.y) * perpBC.x;
-            t /= (perpAB.x * perpBC.y - perpAB.y * perpBC.x);
+            t /= perpAB.x * perpBC.y - perpAB.y * perpBC.x;
 
             // Compute the circumcenter
             return midAB + t * perpAB;
@@ -224,6 +234,6 @@ namespace FMGUnity.Utility
             return $"VoronoiDiagram: Points= {Points.Count}, Triangles= {Triangles.Count}, Cells= {Cells.Count}, Edges= {Edges.Count}";
         }
 
-        public string ToJson() => $"{{\"bounds\": {MapBounds}, \"seed\": {Seed}, \"pointCount\": {PointCount}, \"points\": {Points}, \"triangles\": {Triangles}, \"cells\": {Cells}, \"edges\": {Edges}}}";
+        
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 /// <summary>
 /// A generic helper class that maintains a lazily updated dictionary for mapping object Ids to their indices in a list.
 /// </summary>
+[System.Serializable]
 public class IndexMap<T> where T : IIdentifiable
 {
     private readonly List<T> _list = new();

@@ -6,6 +6,68 @@ namespace FMGUnity.Utility
 
     public static class DelaunayTriangulation
     {
+        public static List<Triangle> GenerateInThreads(List<Vector2> points, Rect bounds, int maxThreads)
+        {
+            // Determine the number of threads
+            int numThreads = Mathf.Min(maxThreads, points.Count);
+
+            // Split the grid into subgrids
+            int width = (int)Mathf.Ceil(Mathf.Sqrt(numThreads));
+            int height = (int)Mathf.Ceil((float)numThreads / width);
+
+            // Create a hashtable for each possible subgrid
+            var subgrids = new Dictionary<int, List<Vector2>>();
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    int index = i + j * width;
+                    subgrids[index] = new List<Vector2>();
+                }
+            }
+
+            // Sort the points according to what section they would fall
+            foreach (var point in points)
+            {
+                int x = (int)Mathf.Floor((point.x - bounds.xMin) / (bounds.xMax - bounds.xMin) * width);
+                int y = (int)Mathf.Floor((point.y - bounds.yMin) / (bounds.yMax - bounds.yMin) * height);
+                int index = x + y * width;
+                subgrids[index].Add(point);
+            }
+
+            // Perform the Generate method on each
+            var threads = new List<System.Threading.Thread>();
+            var results = new List<List<Triangle>>();
+            foreach (var subgrid in subgrids.Values)
+            {
+                var thread = new System.Threading.Thread(() =>
+                {
+                    var result = Generate(subgrid);
+                    lock (results)
+                    {
+                        results.Add(result);
+                    }
+                });
+                threads.Add(thread);
+                thread.Start();
+            }
+
+            // Wait for all threads to finish
+            foreach (var thread in threads)
+            {
+                thread.Join();
+            }
+
+            // Merge them back
+            var mergedTriangles = new List<Triangle>();
+            foreach (var result in results)
+            {
+                mergedTriangles.AddRange(result);
+            }
+
+            return mergedTriangles;
+        }
+
         public static List<Triangle> Generate(List<Vector2> points)
         {
             // Create a list to store triangles
@@ -29,12 +91,12 @@ namespace FMGUnity.Utility
                     }
                 }   
 
-                Debug.Log($"Bad triangles identified: {badTriangles.Count}");
+                // Debug.Log($"Bad triangles identified: {badTriangles.Count}");
 
                 // Step 4: Find the polygonal hole boundary (edges not shared by two bad triangles)
                 var polygon = FindHoleBoundary(badTriangles);
 
-                Debug.Log($"Edges in hole boundary: {polygon.Count}");
+                // Debug.Log($"Edges in hole boundary: {polygon.Count}");
 
                 // Step 5: Remove the bad triangles from the triangulation
                 foreach (var badTriangle in badTriangles)
@@ -42,7 +104,7 @@ namespace FMGUnity.Utility
                     triangles.Remove(badTriangle);
                 }
 
-                Debug.Log($"Bad Triangles removed: {triangles.Count}");
+                // Debug.Log($"Bad Triangles removed: {triangles.Count}");
 
                 // Step 6: Add new triangles connecting the point to each edge of the polygon
                 foreach (var edge in polygon)
@@ -57,7 +119,7 @@ namespace FMGUnity.Utility
                 ContainsVertex(t, superTriangle.Vertices[1]) ||
                 ContainsVertex(t, superTriangle.Vertices[2])
             );
-            Debug.Log($"Total Triangles (post super-triangle removal): {triangles.Count}");
+            // Debug.Log($"Total Triangles (post super-triangle removal): {triangles.Count}");
             return triangles;
         }
 
@@ -103,7 +165,7 @@ namespace FMGUnity.Utility
             float det = (ax * (by * cy - bx * cy)) -
                         (bx * (ay * cy - cx * cy)) +
                         (cx * (ay * by - bx * by));
-            Debug.Log($"Checking circumcircle: {point}, Triangle {triangle} -> {det}");
+            // Debug.Log($"Checking circumcircle: {point}, Triangle {triangle} -> {det}");
             return det > 0;
         }
 

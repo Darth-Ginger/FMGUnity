@@ -3,6 +3,8 @@ using UnityEngine;
 using NaughtyAttributes;
 using UnityEditor;
 using System.IO;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace FMGUnity.Utility
 {
@@ -10,11 +12,17 @@ namespace FMGUnity.Utility
     [RequireComponent(typeof(MeshRenderer))]
     public class VoronoiTester : MonoBehaviour
     {
+
         [Header("Settings")]
         public int pointCount = 100;      // Number of points for the Voronoi diagram
         public Vector2Int size = new(256, 256); // Size of the texture/map (width and height)
         public bool RandomSeed = false;
         public int seed = 42; // Random seed for point generation
+
+        [Header("Multi-Threading Options")]
+        public bool useMultiThreading = true;
+        [EnableIf("useMultiThreading")] public int maxThreads = 8; // Maximum number of threads to use for Delaunay triangulation
+
 
         [SerializeField]
         private VoronoiDiagram voronoiMap;    // The Voronoi map
@@ -41,6 +49,7 @@ namespace FMGUnity.Utility
         [Button("Generate")]
         void GenerateVisualization()
         {
+            var stopwatch = Stopwatch.StartNew();
 
             // Check if the GameObject has a MeshRenderer for visualization on a plane
             meshRenderer = GetComponent<MeshRenderer>();
@@ -48,7 +57,7 @@ namespace FMGUnity.Utility
             if (RandomSeed) seed = Random.Range(1, 10000);
 
             // Initialize and generate the Voronoi map
-            voronoiMap = new(size, pointCount, seed);
+            voronoiMap = new(size, pointCount, seed, true, useMultiThreading, maxThreads);
 
             if (meshRenderer != null)
             {
@@ -56,6 +65,10 @@ namespace FMGUnity.Utility
                 GenerateVoronoiTexture();
                 ApplyTextureToPlane();
             }
+
+            stopwatch.Stop();
+            var elapsedTime = stopwatch.Elapsed.TotalSeconds;
+            Debug.Log($"Voronoi diagram generated in {elapsedTime} seconds.");
         }
 
         [Button("Clear Visualization")]
