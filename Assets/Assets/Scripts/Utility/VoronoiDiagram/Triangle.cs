@@ -15,6 +15,7 @@ namespace FMGUnity.Utility
         [SerializeField] public Vector2[] Vertices { get; private set; }
 
         // Cached circumcenter and circumradius
+        //@todo - Update all sub parts of the diagram to serialize correctly
         [SerializeField] private Vector2? _circumcenter;
         [SerializeField] private float? _circumradiusSquared;
 
