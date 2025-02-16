@@ -12,7 +12,7 @@ namespace FMGUnity.Utility
     public class VoronoiDiagram
     {
 
-        public List<Triangle> Triangles      => _triangleMap.List ?? new();
+        public List<Triangle>     Triangles  => _triangleMap.List ?? new();
         public List<VoronoiPoint> Points     => _pointMap.List ?? new();
         public List<VoronoiCell>  Cells      => _cellMap.List ?? new();
         public List<VoronoiCell>  GetCells() => Cells;
@@ -141,6 +141,9 @@ namespace FMGUnity.Utility
                 cells[point.Position] = new VoronoiCell(point.Position);
             }
 
+            // Set up cell map
+            _cellMap = new(cells.Values.ToList());
+
             // Store edges to track shared ones
             Dictionary<Edge, VoronoiEdge> edgeMap = new();
 
@@ -164,35 +167,36 @@ namespace FMGUnity.Utility
                             continue;
                             }
 
-                        edgeMap[edge] = new VoronoiEdge(
-                            _pointMap.GetBy(p => p.Position == edge.Start),
-                            _pointMap.GetBy(p => p.Position == edge.End)
-                            );
+                        edgeMap[edge] = new VoronoiEdge(start, end);
                     }
 
                     foreach (var vertex in triangle.Vertices)
                     {
                         if (cells.TryGetValue(vertex, out VoronoiCell cell))
                         {
-                            if (edgeMap[edge].LeftCell == null)
+                            if (edgeMap[edge].LeftCell == null || edgeMap[edge].LeftCell == Guid.Empty)
                             {
                                 // Assign the cell to the left side of the edge
                                 edgeMap[edge].SetLeft(cell);
-                                _cellMap.Get(edgeMap[edge].LeftCell).AddNeighbor(this, edgeMap[edge].RightCell);
                             }
-                            else
+                            else if (edgeMap[edge].RightCell == null || edgeMap[edge].RightCell == Guid.Empty)
                             {
                                 // Assign the cell to the right side of the edge
                                 edgeMap[edge].SetRight(cell);
-                                _cellMap.Get(edgeMap[edge].RightCell).AddNeighbor(this, edgeMap[edge].LeftCell);
                             }
                         }
+                    }
+
+                    // Add Neighbors to cell 
+                    if (edgeMap[edge].LeftCell != Guid.Empty && edgeMap[edge].RightCell != Guid.Empty)
+                    {
+                        _cellMap.Get(edgeMap[edge].LeftCell).AddNeighbor(this, edgeMap[edge].RightCell);
+                        _cellMap.Get(edgeMap[edge].RightCell).AddNeighbor(this, edgeMap[edge].LeftCell);
                     }
                 }
             }
 
-            // Set the Cells and Edges lists
-            _cellMap = new(cells.Values.ToList());
+            // Set up edge map
             _edgeMap = new(edgeMap.Values.ToList());
         }
 

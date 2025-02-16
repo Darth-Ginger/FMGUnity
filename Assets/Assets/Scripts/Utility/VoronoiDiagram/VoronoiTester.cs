@@ -24,8 +24,7 @@ namespace FMGUnity.Utility
         [EnableIf("useMultiThreading")] public int maxThreads = 8; // Maximum number of threads to use for Delaunay triangulation
 
 
-        [SerializeField]
-        private VoronoiDiagram voronoiMap;    // The Voronoi map
+        [SerializeField] private VoronoiDiagram voronoiMap;    // The Voronoi map
         private Texture2D voronoiTexture; // Texture to render the map
         private MeshRenderer meshRenderer; // Optional MeshRenderer for the plane
 

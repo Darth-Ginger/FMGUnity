@@ -38,8 +38,8 @@ public class IndexMap<T> where T : IIdentifiable
     }
 
     public List<T> List     => _list;
-    public T Get(Guid id)   => _list[Map[id]];
-    public T Get(int index) => _list[index];
+    public T Get(Guid id)   => Map.TryGetValue(id, out int index) ? _list[index] : default(T);
+    public T Get(int index) => index >= 0 && index < _list.Count ? _list[index] : default(T);
     public int Count        => _list.Count;
     public bool IsEmpty     => _list.Count == 0;
     
