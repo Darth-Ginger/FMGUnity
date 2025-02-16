@@ -9,7 +9,7 @@ namespace FMGUnity.Utility
     [System.Serializable]
     public class VoronoiCell: IIdentifiable
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; private set; }
         [SerializeField] public Vector2 Site; // Voronoi site
         [SerializeField] public List<Vector2> Vertices; // Cell vertices
         [SerializeField] public HashSet<Guid> Neighbors { get; } // Adjacent cells
@@ -45,9 +45,5 @@ namespace FMGUnity.Utility
             return $"VoronoiCell: Site= {Site}, Vertices= {Vertices.Count}, Neighbors({Neighbors.Count})= {neighbors}";
         }
 
-        public string ToJson()
-        {
-            return $"{{\"site\": {Site}, \"vertices\": {Vertices}, \"neighbors\": {Neighbors}}}";
-        }
     }
 }
