@@ -135,7 +135,7 @@ namespace FMGUnity.Utility
                 for (int y = 0; y < voronoiTexture.height; y++)
                 {
                     Vector2 point = new Vector2(x, y);
-                    VoronoiCell closestCell = FindClosestCell(point, voronoiMap.Cells);
+                    VoronoiCell closestCell = FindClosestCell(point, (List<VoronoiCell>)voronoiMap.Cells);
 
                     // Map the pixel to the cell
                     pixelToCellMap[new Vector2Int(x, y)] = closestCell;
