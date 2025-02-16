@@ -37,7 +37,12 @@ public class IndexMap<T> where T : IIdentifiable
         }
     }
 
-    public List<T> List => _list;
+    public List<T> List     => _list;
+    public T Get(Guid id)   => _list[Map[id]];
+    public T Get(int index) => _list[index];
+    public int Count        => _list.Count;
+    public bool IsEmpty     => _list.Count == 0;
+    
 
     /// <summary>
     /// Adds an item to the list and marks the dictionary as dirty.
@@ -87,6 +92,24 @@ public class IndexMap<T> where T : IIdentifiable
             return -1;
         return index;
     }
+
+    /// <summary>
+    /// Gets an item from the list by a specific attribute.
+    /// </summary>
+    /// <param name="predicate">A function to determine the attribute to match.</param>
+    /// <returns>The item if found; otherwise, null.</returns>
+    /// <example>
+    /// <code>
+    /// IndexMap&lt;MyClass&gt; map = ...;
+    /// MyClass obj = map.GetBy(item => item.MyProperty == 42);
+    /// </code>
+    /// </example>
+    public T GetBy(Predicate<T> predicate)
+    {
+        T match = _list.Find(predicate);
+        return match == null ? default(T) : match;
+    }
+
 
     /// <summary>
     /// Rebuilds the dictionary mapping Ids to their indices.

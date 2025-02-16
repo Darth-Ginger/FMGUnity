@@ -24,6 +24,16 @@ namespace FMGUnity.Utility
         private IndexMap<VoronoiCell>  _cellMap     = new();
         private IndexMap<VoronoiEdge>  _edgeMap    = new();
 
+        // Public Map Accessors
+        public Triangle     GetTriangle (Guid id) => _triangleMap.Get(id);
+        public VoronoiPoint GetPoint    (Guid id) => _pointMap.Get(id);
+        public VoronoiPoint GetPoint    (Vector2 position) => _pointMap.GetBy(p => p.Position == position);
+        public VoronoiCell  GetCell     (Guid id) => _cellMap.Get(id);
+        public VoronoiCell  GetCell     (Vector2 site) => _cellMap.GetBy(c => c.Site == site);
+        public VoronoiEdge  GetEdge     (Guid id) => _edgeMap.Get(id);
+        public VoronoiEdge  GetEdge     (VoronoiPoint start, VoronoiPoint end) => _edgeMap.GetBy(e => e.Start == start.Id && e.End == end.Id);
+        public VoronoiEdge  GetEdge     (Vector2 start, Vector2 end) => _edgeMap.GetBy(e => e.Start == GetPoint(start).Id && e.End == GetPoint(end).Id);
+
 
 
         [Header("Voronoi Diagram Settings")]
@@ -143,7 +153,21 @@ namespace FMGUnity.Utility
                     if (!edgeMap.ContainsKey(edge))
                     {
                         //TODO: Update the GetEdges to return VoronoiEdges or find a way to map edge back to VoronoiEdge
-                        edgeMap[edge] = new VoronoiEdge(edge.Start, edge.End);
+                        VoronoiPoint start = _pointMap.GetBy(p => p.Position == edge.Start);
+                        VoronoiPoint end = _pointMap.GetBy(p => p.Position == edge.End);
+                        if (start == null) {
+                            Debug.LogWarning($"Start of {edge} is null");
+                            continue;
+                            }
+                        if (end == null) {
+                            Debug.LogWarning($"End of {edge} is null");
+                            continue;
+                            }
+
+                        edgeMap[edge] = new VoronoiEdge(
+                            _pointMap.GetBy(p => p.Position == edge.Start),
+                            _pointMap.GetBy(p => p.Position == edge.End)
+                            );
                     }
 
                     foreach (var vertex in triangle.Vertices)
@@ -152,13 +176,15 @@ namespace FMGUnity.Utility
                         {
                             if (edgeMap[edge].LeftCell == null)
                             {
-                                edgeMap[edge].LeftCell = cell;
-                                edgeMap[edge].LeftCell.AddNeighbor(edgeMap[edge].RightCell);
+                                // Assign the cell to the left side of the edge
+                                edgeMap[edge].SetLeft(cell);
+                                _cellMap.Get(edgeMap[edge].LeftCell).AddNeighbor(this, edgeMap[edge].RightCell);
                             }
                             else
                             {
-                                edgeMap[edge].RightCell = cell;
-                                edgeMap[edge].RightCell.AddNeighbor(edgeMap[edge].LeftCell);
+                                // Assign the cell to the right side of the edge
+                                edgeMap[edge].SetRight(cell);
+                                _cellMap.Get(edgeMap[edge].RightCell).AddNeighbor(this, edgeMap[edge].LeftCell);
                             }
                         }
                     }
