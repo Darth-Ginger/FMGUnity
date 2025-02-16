@@ -94,7 +94,7 @@ namespace FMGUnity.Utility
             string path = EditorUtility.SaveFilePanel("Save Voronoi Diagram", "", $"voronoi-diagram-{size.x}x{size.y}-{pointCount}-{seed}", "json");
             if (path.Length != 0)
             {
-                string serialized = JsonUtility.ToJson(voronoiMap);
+                string serialized = JsonUtility.ToJson(voronoiMap, true);
                 File.WriteAllText(path, serialized);
                 Debug.Log("Voronoi diagram saved to " + path);
             }
