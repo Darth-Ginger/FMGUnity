@@ -7,9 +7,9 @@ using UnityEngine;
 /// A generic helper class that maintains a lazily updated dictionary for mapping object Ids to their indices in a list.
 /// </summary>
 [System.Serializable]
-public class IndexMap<T> where T : IIdentifiable
+public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
 {
-    private readonly List<T> _list = new();
+    [SerializeField] private List<T> _list = new();
     private Func<T, Guid> _getId => item => item.Id; // Function to retrieve Id
     private Dictionary<Guid, int> _indexMap;
     private bool _isMapDirty = true;
@@ -129,5 +129,15 @@ public class IndexMap<T> where T : IIdentifiable
         _list.Clear();
         _indexMap = null;
         _isMapDirty = true;
+    }
+
+    public void OnBeforeSerialize()
+    {
+        RebuildMap();
+    }
+
+    public void OnAfterDeserialize()
+    {
+        RebuildMap();
     }
 }

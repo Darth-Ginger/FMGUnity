@@ -5,24 +5,31 @@ using System.Linq;
 using System;
 using Random = UnityEngine.Random;
 using FMGUnity.Utility.Interfaces;
+using JetBrains.Annotations;
 
 namespace FMGUnity.Utility
 {
     [System.Serializable]
-    public class VoronoiDiagram
+    public class VoronoiDiagram: ISerializationCallbackReceiver
     {
 
-        public List<Triangle>     Triangles  => _triangleMap.List ?? new();
-        public List<VoronoiPoint> Points     => _pointMap.List ?? new();
-        public List<VoronoiCell>  Cells      => _cellMap.List ?? new();
-        public List<VoronoiCell>  GetCells() => Cells;
-        public List<VoronoiEdge>  Edges      => _edgeMap.List ?? new();
+        // Serialiable fields for Unity and JSON
+        [SerializeField] private List<Triangle>     _triangles  = new();
+        [SerializeField] private List<VoronoiPoint> _points     = new();
+        [SerializeField] private List<VoronoiCell>  _cells      = new();
+        [SerializeField] private List<VoronoiEdge>  _edges      = new();
+        
+        // Public properties
+        public IReadOnlyList<Triangle>     Triangles => _triangleMap.List;
+        public IReadOnlyList<VoronoiPoint> Points    => _pointMap.List;
+        public IReadOnlyList<VoronoiCell>  Cells     => _cellMap.List;
+        public IReadOnlyList<VoronoiEdge>  Edges     => _edgeMap.List;
 
         // Object -> Index Mappings
         private IndexMap<Triangle>     _triangleMap = new();
         private IndexMap<VoronoiPoint> _pointMap    = new();
         private IndexMap<VoronoiCell>  _cellMap     = new();
-        private IndexMap<VoronoiEdge>  _edgeMap    = new();
+        private IndexMap<VoronoiEdge>  _edgeMap     = new();
 
         // Public Map Accessors
         public Triangle     GetTriangle (Guid id) => _triangleMap.Get(id);
@@ -264,6 +271,32 @@ namespace FMGUnity.Utility
             return $"VoronoiDiagram: Points= {Points.Count}, Triangles= {Triangles.Count}, Cells= {Cells.Count}, Edges= {Edges.Count}";
         }
 
-        
+        public void OnBeforeSerialize()
+        {
+             // Ensure IndexMaps are synchronized internally
+            _pointMap?.OnBeforeSerialize();
+            _triangleMap?.OnBeforeSerialize();
+            _cellMap?.OnBeforeSerialize();
+            _edgeMap?.OnBeforeSerialize();
+
+            _points     = _pointMap?.List ?? new();
+            _triangles  = _triangleMap?.List ?? new();
+            _cells      = _cellMap?.List ?? new();
+            _edges      = _edgeMap?.List ?? new();
+        }
+
+        public void OnAfterDeserialize()
+        {
+            _pointMap = new(_points);
+            _triangleMap = new(_triangles);
+            _cellMap = new(_cells);
+            _edgeMap = new(_edges);
+
+            // Rebuild maps
+            _pointMap.OnAfterDeserialize();
+            _triangleMap.OnAfterDeserialize();
+            _cellMap.OnAfterDeserialize(); 
+            _edgeMap.OnAfterDeserialize();
+        }
     }
 }
