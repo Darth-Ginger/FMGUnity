@@ -1,4 +1,5 @@
 using FMGUnity.Utility.Interfaces;
+using FMGUnity.Utility.Serials;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -9,20 +10,29 @@ namespace FMGUnity.Utility
     [System.Serializable]
     public class Triangle : IIdentifiable
     {
-        public Guid Id { get; private set; }
+        [SerializeField] private SerialGuid _id;
+        public SerialGuid Id => _id;
 
         // Vertices of the triangle
-        [SerializeField] public Vector2[] Vertices { get; private set; }
+        [SerializeField] public Vector2[] Vertices => _vertices;
+        [SerializeField] public List<Edge> Edges => _edges;
 
         // Cached circumcenter and circumradius
-        //@todo - Update all sub parts of the diagram to serialize correctly
-        [SerializeField] private Vector2? _circumcenter;
-        [SerializeField] private float? _circumradiusSquared;
+
+        [SerializeField] private Vector2[] _vertices = new Vector2[3];
+        [SerializeField] private List<Edge> _edges = new();
+        [SerializeField] private SerialNullable<Vector2> _circumcenter = new();
+        [SerializeField] private SerialNullable<float> _circumradiusSquared = new();
 
         public Triangle(Vector2 v1, Vector2 v2, Vector2 v3)
         {
-            Id = Guid.NewGuid();
-            Vertices = new Vector2[] { v1, v2, v3 };
+            _id = SerialGuid.NewGuid();
+            _vertices = new Vector2[] { v1, v2, v3 };
+
+            _edges = GetEdges();
+            _circumcenter = GetCircumcenter();
+            SetRircumRadiusSquared();
+
         }
 
         /// <summary>
@@ -70,6 +80,14 @@ namespace FMGUnity.Utility
             // Compute circumcenter
             _circumcenter = midAB + t * perpAB;
             return _circumcenter.Value;
+        }
+
+        public void SetRircumRadiusSquared()
+        {
+            if (_circumcenter.HasValue)
+            {
+                _circumradiusSquared = (Vertices[0] - _circumcenter.Value).sqrMagnitude;
+            }
         }
 
         /// <summary>

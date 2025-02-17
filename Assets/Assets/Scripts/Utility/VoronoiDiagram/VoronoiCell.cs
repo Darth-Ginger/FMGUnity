@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using FMGUnity.Utility.Interfaces;
+using FMGUnity.Utility.Serials;
 using UnityEngine;
 
 namespace FMGUnity.Utility
@@ -9,14 +10,15 @@ namespace FMGUnity.Utility
     [System.Serializable]
     public class VoronoiCell: IIdentifiable
     {
-        public Guid Id { get; private set; }
+        [SerializeField] SerialGuid _id;
+        public SerialGuid Id => _id;
         [SerializeField] public Vector2 Site; // Voronoi site
         [SerializeField] public List<Vector2> Vertices; // Cell vertices
         [SerializeField] public HashSet<Guid> Neighbors { get; } // Adjacent cells
 
         public VoronoiCell(Vector2 site)
         {
-            Id = Guid.NewGuid();
+            _id = SerialGuid.NewGuid();
             Site = site;
             Vertices = new List<Vector2>();
             Neighbors = new();

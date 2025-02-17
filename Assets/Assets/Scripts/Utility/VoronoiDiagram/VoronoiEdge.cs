@@ -2,25 +2,31 @@ using System;
 using UnityEngine;
 using NaughtyAttributes;
 using FMGUnity.Utility.Interfaces;
+using FMGUnity.Utility.Serials;
 
 namespace FMGUnity.Utility
 {
     [System.Serializable]
     public class VoronoiEdge: IIdentifiable
     {
-        public Guid Id { get; private set; }
-        [SerializeField] public Guid Start { get; }
-        [SerializeField] public Guid End { get; }
-        [SerializeField] public Guid LeftCell  { get; private set; } // The cell on the left
-        [SerializeField] public Guid RightCell { get; private set; } // The cell on the right
+        [SerializeField] private SerialGuid _id;
+        [SerializeField] private SerialGuid _start;
+        [SerializeField] private SerialGuid _end;
+        [SerializeField] private SerialGuid _leftCell;
+        [SerializeField] private SerialGuid _rightCell;
+        public SerialGuid Id => _id;
+        [SerializeField] public SerialGuid Start => _start;
+        [SerializeField] public SerialGuid End => _end;
+        [SerializeField] public SerialGuid LeftCell  => _leftCell;
+        [SerializeField] public SerialGuid RightCell => _rightCell;
 
         public VoronoiEdge(VoronoiPoint start, VoronoiPoint end, VoronoiCell leftCell = null, VoronoiCell rightCell = null)
         {
-            Id = Guid.NewGuid();
-            Start = start.Id;
-            End = end.Id;
-            LeftCell = leftCell?.Id ?? Guid.Empty;
-            RightCell = rightCell?.Id ?? Guid.Empty;
+            _id = SerialGuid.NewGuid();
+            _start = start.Id;
+            _end = end.Id;
+            _leftCell = leftCell?.Id ?? Guid.Empty;
+            _rightCell = rightCell?.Id ?? Guid.Empty;
         }
 
         public enum CellSide { Left, Right }
@@ -29,8 +35,8 @@ namespace FMGUnity.Utility
         {
             if (cellId != default)
             {
-                if (side == CellSide.Left) LeftCell = cellId;
-                else RightCell = cellId;
+                if (side == CellSide.Left) _leftCell = cellId;
+                else _rightCell = cellId;
             }
         }
         public void SetCell(CellSide side = CellSide.Left, VoronoiCell cell = null) => SetCell(side, cell?.Id ?? Guid.Empty);

@@ -14,7 +14,7 @@ namespace FMGUnity.Utility
     {
 
         [Header("Settings")]
-        public int pointCount = 100;      // Number of points for the Voronoi diagram
+        public int siteCount = 100;      // Number of points for the Voronoi diagram
         public Vector2Int size = new(256, 256); // Size of the texture/map (width and height)
         public bool RandomSeed = false;
         public int seed = 42; // Random seed for point generation
@@ -56,7 +56,7 @@ namespace FMGUnity.Utility
             if (RandomSeed) seed = Random.Range(1, 10000);
 
             // Initialize and generate the Voronoi map
-            voronoiMap = new(size, pointCount, seed, true, useMultiThreading, maxThreads);
+            voronoiMap = new(size, siteCount, seed, true, useMultiThreading, maxThreads);
 
             if (meshRenderer != null)
             {
@@ -91,7 +91,7 @@ namespace FMGUnity.Utility
         [Button("Save Diagram")]
         void SaveDiagram()
         {
-            string path = EditorUtility.SaveFilePanel("Save Voronoi Diagram", "", $"voronoi-diagram-{size.x}x{size.y}-{pointCount}-{seed}", "json");
+            string path = EditorUtility.SaveFilePanel("Save Voronoi Diagram", "", $"voronoi-diagram-{size.x}x{size.y}-{siteCount}-{seed}", "json");
             if (path.Length != 0)
             {
                 string serialized = JsonUtility.ToJson(voronoiMap, true);

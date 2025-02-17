@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -208,15 +209,19 @@ namespace FMGUnity.Utility
         }
     }
 
+    [Serializable]
     public class Edge
     {
-        public Vector2 Start { get; }
-        public Vector2 End { get; }
+        [SerializeField] private Vector2 _start;
+        [SerializeField] private Vector2 _end;
+
+        public Vector2 Start => _start;
+        public Vector2 End   => _end;
 
         public Edge(Vector2 start, Vector2 end)
         {
-            Start = start;
-            End = end;
+            _start = start;
+            _end = end;
         }
 
         public override bool Equals(object obj)

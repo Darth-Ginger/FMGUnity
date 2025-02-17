@@ -15,44 +15,44 @@ namespace FMGUnity.Utility
 
         // Serialiable fields for Unity and JSON
         [SerializeField] private List<Triangle>     _triangles  = new();
-        [SerializeField] private List<VoronoiPoint> _points     = new();
+        [SerializeField] private List<VoronoiPoint> _sites     = new();
         [SerializeField] private List<VoronoiCell>  _cells      = new();
         [SerializeField] private List<VoronoiEdge>  _edges      = new();
         
         // Public properties
         public IReadOnlyList<Triangle>     Triangles => _triangleMap.List;
-        public IReadOnlyList<VoronoiPoint> Points    => _pointMap.List;
+        public IReadOnlyList<VoronoiPoint> Sites    => _siteMap.List;
         public IReadOnlyList<VoronoiCell>  Cells     => _cellMap.List;
         public IReadOnlyList<VoronoiEdge>  Edges     => _edgeMap.List;
 
         // Object -> Index Mappings
         private IndexMap<Triangle>     _triangleMap = new();
-        private IndexMap<VoronoiPoint> _pointMap    = new();
+        private IndexMap<VoronoiPoint> _siteMap    = new();
         private IndexMap<VoronoiCell>  _cellMap     = new();
         private IndexMap<VoronoiEdge>  _edgeMap     = new();
 
         // Public Map Accessors
         public Triangle     GetTriangle (Guid id) => _triangleMap.Get(id);
-        public VoronoiPoint GetPoint    (Guid id) => _pointMap.Get(id);
-        public VoronoiPoint GetPoint    (Vector2 position) => _pointMap.GetBy(p => p.Position == position);
+        public VoronoiPoint GetSite    (Guid id) => _siteMap.Get(id);
+        public VoronoiPoint GetSite    (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
         public VoronoiCell  GetCell     (Guid id) => _cellMap.Get(id);
         public VoronoiCell  GetCell     (Vector2 site) => _cellMap.GetBy(c => c.Site == site);
         public VoronoiEdge  GetEdge     (Guid id) => _edgeMap.Get(id);
         public VoronoiEdge  GetEdge     (VoronoiPoint start, VoronoiPoint end) => _edgeMap.GetBy(e => e.Start == start.Id && e.End == end.Id);
-        public VoronoiEdge  GetEdge     (Vector2 start, Vector2 end) => _edgeMap.GetBy(e => e.Start == GetPoint(start).Id && e.End == GetPoint(end).Id);
+        public VoronoiEdge  GetEdge     (Vector2 start, Vector2 end) => _edgeMap.GetBy(e => e.Start == GetSite(start).Id && e.End == GetSite(end).Id);
 
 
 
         [Header("Voronoi Diagram Settings")]
         public Vector2Int MapBounds { get; private set; }
         public int Seed             { get; private set; }
-        public int PointCount       { get; private set; }
+        public int SiteCount       { get; private set; }
 
-        public VoronoiDiagram(Vector2Int mapBounds, int pointCount = 100, int seed = 42, bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
+        public VoronoiDiagram(Vector2Int mapBounds, int siteCount = 100, int seed = 42, bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
         {
             MapBounds = mapBounds;
             Seed = seed;
-            PointCount = pointCount;
+            SiteCount = siteCount;
 
             Random.InitState(Seed);
 
@@ -66,19 +66,19 @@ namespace FMGUnity.Utility
             
             Clear();
 
-            // Generate random points
-            GeneratePoints(PointCount);
+            // Generate random sites
+            GenerateSites(SiteCount);
 
             // Generate Delaunay triangulation
             if (!useMultiThreading || maxThreads <= 1)
             {
                 Debug.Log("Generating Delaunay Triangulation in a single thread");
-                _triangleMap = new(DelaunayTriangulation.Generate(Points.Select(p => p.Position).ToList()));
+                _triangleMap = new(DelaunayTriangulation.Generate(Sites.Select(p => p.Position).ToList()));
             }
             else{
                 Debug.Log($"Generating Delaunay Triangulation in {maxThreads} threads");
                 Rect bounds = new Rect(0, 0, MapBounds.x, MapBounds.y);
-                _triangleMap = new(DelaunayTriangulation.GenerateInThreads(Points.Select(p => p.Position).ToList(), bounds, maxThreads));
+                _triangleMap = new(DelaunayTriangulation.GenerateInThreads(Sites.Select(p => p.Position).ToList(), bounds, maxThreads));
             }
 
             // Generate Voronoi diagram
@@ -89,20 +89,20 @@ namespace FMGUnity.Utility
 
 
         /// <summary>
-        /// Generates points in the Voronoi diagram, optionally regenerating existing points.
+        /// Generates sites in the Voronoi diagram, optionally regenerating existing sites.
         /// </summary>
-        /// <param name="count">The number of points to generate.</param>
-        /// <param name="regenerate">Whether to regenerate existing points.</param>
-        public void GeneratePoints(int count, bool regenerate = false)
+        /// <param name="count">The number of sites to generate.</param>
+        /// <param name="regenerate">Whether to regenerate existing sites.</param>
+        public void GenerateSites(int count, bool regenerate = false)
         {
-            if (regenerate || _pointMap.List.Count <= 0)
+            if (regenerate || _siteMap.List.Count <= 0)
             {
-                _pointMap.Clear();
+                _siteMap.Clear();
                 Random.InitState(Seed);
 
                 for (int i = 0; i < count; i++)
                 {
-                    _pointMap.Add(new VoronoiPoint(
+                    _siteMap.Add(new VoronoiPoint(
                         Random.Range(0, MapBounds.x),
                         Random.Range(0, MapBounds.y)
                     ));
@@ -111,24 +111,24 @@ namespace FMGUnity.Utility
         }
 
         /// <summary>
-        /// Clears the Voronoi diagram, removing all points, triangles and cells.
+        /// Clears the Voronoi diagram, removing all sites, triangles and cells.
         /// </summary>
         public void Clear()
         {
-            _pointMap?.Clear();
+            _siteMap?.Clear();
             _triangleMap?.Clear();
             _cellMap?.Clear();
             _edgeMap?.Clear();
         }
 
-        public bool IsInitialized() => !(Points == null || Triangles == null || Cells == null || Edges == null) &&
-                                      !(Points.Count == 0 || Triangles.Count == 0 || Cells.Count == 0 || Edges.Count == 0);
+        public bool IsInitialized() => !(Sites == null || Triangles == null || Cells == null || Edges == null) &&
+                                      !(Sites.Count == 0 || Triangles.Count == 0 || Cells.Count == 0 || Edges.Count == 0);
 
         /// <summary>
-        /// Generates a Voronoi diagram from a given set of Delaunay triangles and points.
+        /// Generates a Voronoi diagram from a given set of Delaunay triangles and sites.
         /// </summary>
         /// <param name="regenerate">Whether to regenerate the Voronoi diagram.</param>
-        /// <returns>A list of Voronoi cells, each representing a region around a point site.</returns>
+        /// <returns>A list of Voronoi cells, each representing a region around a site site.</returns>
         /// <remarks>
         ///     This method computes the circumcenters of each Delaunay triangle and assigns them to the
         ///     corresponding Voronoi cells based on triangle vertices. It also establishes adjacency
@@ -142,10 +142,11 @@ namespace FMGUnity.Utility
             // Create a dictionary to store the cells
             var cells = new Dictionary<Vector2, VoronoiCell>();
 
-            // Initialize cells for each point
-            foreach (var point in _pointMap.List)
+            // Initialize cells for each site
+            foreach (var site in _siteMap.List)
             {
-                cells[point.Position] = new VoronoiCell(point.Position);
+                cells[site.Position] = new VoronoiCell(site.Position);
+                site.PartOfCell(cells[site.Position].Id);
             }
 
             // Set up cell map
@@ -163,8 +164,8 @@ namespace FMGUnity.Utility
                     if (!edgeMap.ContainsKey(edge))
                     {
                         //TODO: Update the GetEdges to return VoronoiEdges or find a way to map edge back to VoronoiEdge
-                        VoronoiPoint start = _pointMap.GetBy(p => p.Position == edge.Start);
-                        VoronoiPoint end = _pointMap.GetBy(p => p.Position == edge.End);
+                        VoronoiPoint start = _siteMap.GetBy(p => p.Position == edge.Start);
+                        VoronoiPoint end = _siteMap.GetBy(p => p.Position == edge.End);
                         if (start == null) {
                             Debug.LogWarning($"Start of {edge} is null");
                             continue;
@@ -213,7 +214,7 @@ namespace FMGUnity.Utility
         /// <param name="triangle">The triangle for which to compute the circumcenter.</param>
         /// <returns>The circumcenter as a Vector2.</returns>
         /// <remarks>
-        ///     The circumcenter is calculated by finding the intersection point of the 
+        ///     The circumcenter is calculated by finding the intersection site of the 
         ///     perpendicular bisectors of two edges of the triangle. It is the center of 
         ///     the circle that passes through all three vertices of the triangle.
         /// </remarks>
@@ -224,7 +225,7 @@ namespace FMGUnity.Utility
             Vector2 b = triangle.Vertices[1];
             Vector2 c = triangle.Vertices[2];
 
-            // Compute the midpoints of two edges
+            // Compute the midsites of two edges
             Vector2 midAB = (a + b) / 2f;
             Vector2 midBC = (b + c) / 2f;
 
@@ -268,18 +269,18 @@ namespace FMGUnity.Utility
     
         public override string ToString()
         {
-            return $"VoronoiDiagram: Points= {Points.Count}, Triangles= {Triangles.Count}, Cells= {Cells.Count}, Edges= {Edges.Count}";
+            return $"VoronoiDiagram: Sites= {Sites.Count}, Triangles= {Triangles.Count}, Cells= {Cells.Count}, Edges= {Edges.Count}";
         }
 
         public void OnBeforeSerialize()
         {
              // Ensure IndexMaps are synchronized internally
-            _pointMap?.OnBeforeSerialize();
+            _siteMap?.OnBeforeSerialize();
             _triangleMap?.OnBeforeSerialize();
             _cellMap?.OnBeforeSerialize();
             _edgeMap?.OnBeforeSerialize();
 
-            _points     = _pointMap?.List ?? new();
+            _sites     = _siteMap?.List ?? new();
             _triangles  = _triangleMap?.List ?? new();
             _cells      = _cellMap?.List ?? new();
             _edges      = _edgeMap?.List ?? new();
@@ -287,13 +288,13 @@ namespace FMGUnity.Utility
 
         public void OnAfterDeserialize()
         {
-            _pointMap = new(_points);
+            _siteMap = new(_sites);
             _triangleMap = new(_triangles);
             _cellMap = new(_cells);
             _edgeMap = new(_edges);
 
             // Rebuild maps
-            _pointMap.OnAfterDeserialize();
+            _siteMap.OnAfterDeserialize();
             _triangleMap.OnAfterDeserialize();
             _cellMap.OnAfterDeserialize(); 
             _edgeMap.OnAfterDeserialize();
