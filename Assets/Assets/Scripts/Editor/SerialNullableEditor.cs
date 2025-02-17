@@ -5,14 +5,21 @@ using UnityEngine;
 namespace FMGUnity.Utility
 {
     //@todo Implement Custom Editor Script 
-    //@todo Implement Concrete Custome Editor for each used Type
+    
     public class SerialNullableEditor<T> : Editor where T : struct
     {
     }
 
+    [CustomEditor(typeof(SerialNullable<Vector2>))]
     public class SerialNullableVector2Editor : SerialNullableEditor<Vector2> 
     { 
+        //@todo Implement Vector2 Custom Editor
+    }
 
+    [CustomEditor(typeof(SerialNullable<float>))]
+    public class SerialNullableFloatEditor : SerialNullableEditor<Vector2> 
+    { 
+        //@todo Implement float Custom Editor
     }
 
 }
