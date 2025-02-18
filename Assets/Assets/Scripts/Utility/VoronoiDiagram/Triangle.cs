@@ -8,11 +8,8 @@ namespace FMGUnity.Utility
 {
 
     [System.Serializable]
-    public class Triangle : IIdentifiable
+    public class Triangle : Identifiable
     {
-        [SerializeField] private SerialGuid _id;
-        public SerialGuid Id => _id;
-
         // Vertices of the triangle
         [SerializeField] public Vector2[] Vertices => _vertices;
         [SerializeField] public List<Edge> Edges => _edges;
@@ -26,12 +23,12 @@ namespace FMGUnity.Utility
 
         public Triangle(Vector2 v1, Vector2 v2, Vector2 v3)
         {
-            _id = SerialGuid.NewGuid();
             _vertices = new Vector2[] { v1, v2, v3 };
 
             _edges = GetEdges();
             _circumcenter = GetCircumcenter();
             SetRircumRadiusSquared();
+            Initialize("Triangle", Vector2Int.RoundToInt(v1), Vector2Int.RoundToInt(v2), Vector2Int.RoundToInt(v3));
 
         }
 

@@ -21,7 +21,7 @@ namespace FMGUnity.Utility
         
         // Public properties
         public IReadOnlyList<Triangle>     Triangles => _triangleMap.List;
-        public IReadOnlyList<VoronoiPoint> Sites    => _siteMap.List;
+        public IReadOnlyList<VoronoiPoint> Sites     => _siteMap.List;
         public IReadOnlyList<VoronoiCell>  Cells     => _cellMap.List;
         public IReadOnlyList<VoronoiEdge>  Edges     => _edgeMap.List;
 
@@ -32,14 +32,14 @@ namespace FMGUnity.Utility
         private IndexMap<VoronoiEdge>  _edgeMap     = new();
 
         // Public Map Accessors
-        public Triangle     GetTriangle (Guid id) => _triangleMap.Get(id);
-        public VoronoiPoint GetSite    (Guid id) => _siteMap.Get(id);
-        public VoronoiPoint GetSite    (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
-        public VoronoiCell  GetCell     (Guid id) => _cellMap.Get(id);
+        public Triangle     GetTriangle (string id) => _triangleMap.Get(id);
+        public VoronoiPoint GetSite     (string id) => _siteMap.Get(id);
+        public VoronoiPoint GetSite     (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
+        public VoronoiCell  GetCell     (string id) => _cellMap.Get(id);
         public VoronoiCell  GetCell     (Vector2 site) => _cellMap.GetBy(c => c.Site == site);
-        public VoronoiEdge  GetEdge     (Guid id) => _edgeMap.Get(id);
-        public VoronoiEdge  GetEdge     (VoronoiPoint start, VoronoiPoint end) => _edgeMap.GetBy(e => e.Start == start.Id && e.End == end.Id);
-        public VoronoiEdge  GetEdge     (Vector2 start, Vector2 end) => _edgeMap.GetBy(e => e.Start == GetSite(start).Id && e.End == GetSite(end).Id);
+        public VoronoiEdge  GetEdge     (string id) => _edgeMap.Get(id);
+        public VoronoiEdge  GetEdge     (VoronoiPoint start, VoronoiPoint end) => _edgeMap.GetBy(e => e.Start == start.Name && e.End == end.Name);
+        public VoronoiEdge  GetEdge     (Vector2 start, Vector2 end) => _edgeMap.GetBy(e => e.Start == GetSite(start).Name && e.End == GetSite(end).Name);
 
 
 
@@ -146,7 +146,7 @@ namespace FMGUnity.Utility
             foreach (var site in _siteMap.List)
             {
                 cells[site.Position] = new VoronoiCell(site.Position);
-                site.PartOfCell(cells[site.Position].Id);
+                site.PartOfCell(cells[site.Position].Name);
             }
 
             // Set up cell map
@@ -182,12 +182,12 @@ namespace FMGUnity.Utility
                     {
                         if (cells.TryGetValue(vertex, out VoronoiCell cell))
                         {
-                            if (edgeMap[edge].LeftCell == null || edgeMap[edge].LeftCell == Guid.Empty)
+                            if (edgeMap[edge].LeftCell == null || edgeMap[edge].LeftCell == string.Empty)
                             {
                                 // Assign the cell to the left side of the edge
                                 edgeMap[edge].SetLeft(cell);
                             }
-                            else if (edgeMap[edge].RightCell == null || edgeMap[edge].RightCell == Guid.Empty)
+                            else if (edgeMap[edge].RightCell == null || edgeMap[edge].RightCell == string.Empty)
                             {
                                 // Assign the cell to the right side of the edge
                                 edgeMap[edge].SetRight(cell);
@@ -196,7 +196,7 @@ namespace FMGUnity.Utility
                     }
 
                     // Add Neighbors to cell 
-                    if (edgeMap[edge].LeftCell != Guid.Empty && edgeMap[edge].RightCell != Guid.Empty)
+                    if (edgeMap[edge].LeftCell != string.Empty && edgeMap[edge].RightCell != string.Empty)
                     {
                         _cellMap.Get(edgeMap[edge].LeftCell).AddNeighbor(this, edgeMap[edge].RightCell);
                         _cellMap.Get(edgeMap[edge].RightCell).AddNeighbor(this, edgeMap[edge].LeftCell);

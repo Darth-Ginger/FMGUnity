@@ -7,41 +7,38 @@ using UnityEngine;
 namespace FMGUnity.Utility
 {
     [System.Serializable]
-    public class VoronoiPoint : IIdentifiable
+    public class VoronoiPoint : Identifiable
     {
-        [SerializeField] private SerialGuid _id;
         [SerializeField] private Vector2 _position;
-        [SerializeField] private List<SerialGuid> _cell;
+        [SerializeField] private List<string> _cell;
 
-        public SerialGuid Id => _id;
         public Vector2 Position => _position;
-        public List<SerialGuid> Cell => _cell;
+        public List<string> Cell => _cell;
 
         // Constructor
         public VoronoiPoint(Vector2 position)
         {
-            _id = SerialGuid.NewGuid();
             _position = position;
             _cell = new();
+            Initialize("VoronoiPoint", position);
         }
         // Overloaded constructors
         public VoronoiPoint(float x, float y) : this(new Vector2(x, y)) { }
         public VoronoiPoint(int x, int y) : this(new Vector2(x, y)) { }
 
         // Adds a cell that the point belongs to
-        public void PartOfCell(Guid cellId) => _cell.Add(cellId);
-        public void PartOfCell(SerialGuid cellId) => _cell.Add(cellId);
-        public void PartOfCell(VoronoiCell cell) => PartOfCell(cell.Id);
+
+        public void PartOfCell(string cellId) => _cell.Add(cellId);
+        public void PartOfCell(VoronoiCell cell) => PartOfCell(cell.Name);
 
         // Checks if the point is part of a given cell
-        public bool IsPartOfCell(Guid cellId) => Cell.Contains(cellId);
-        public bool IsPartOfCell(SerialGuid cellId) => Cell.Contains(cellId);
-        public bool IsPartOfCell(VoronoiCell cell) => IsPartOfCell(cell.Id);
+        public bool IsPartOfCell(string cellId) => Cell.Contains(cellId);
+        public bool IsPartOfCell(VoronoiCell cell) => IsPartOfCell(cell.Name);
 
         public static implicit operator Vector2(VoronoiPoint p) => p.Position;
         public static implicit operator VoronoiPoint(Vector2 v) => new(v);
 
-        public override string ToString() => $"VoronoiPoint: Position={Position}";
+        public override string ToString() => $"VoronoiPoint: Name={Name}, Position={Position}, Within cells: {Cell}";
 
         public override bool Equals(object obj)
         {

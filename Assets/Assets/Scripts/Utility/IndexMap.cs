@@ -10,8 +10,8 @@ using UnityEngine;
 public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
 {
     [SerializeField] private List<T> _list = new();
-    private Func<T, Guid> _getId => item => item.Id; // Function to retrieve Id
-    private Dictionary<Guid, int> _indexMap;
+    private Func<T, string> _getId => item => item.Name; // Function to retrieve Id
+    private Dictionary<string, int> _indexMap;
     private bool _isMapDirty = true;
 
     public IndexMap()
@@ -27,7 +27,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     /// <summary>
     /// Returns the dictionary, rebuilding it if necessary.
     /// </summary>
-    public Dictionary<Guid, int> Map
+    public Dictionary<string, int> Map
     {
         get
         {
@@ -38,7 +38,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     }
 
     public List<T> List     => _list;
-    public T Get(Guid id)   => Map.TryGetValue(id, out int index) ? _list[index] : default(T);
+    public T Get(string id)   => Map.TryGetValue(id, out int index) ? _list[index] : default(T);
     public T Get(int index) => index >= 0 && index < _list.Count ? _list[index] : default(T);
     public int Count        => _list.Count;
     public bool IsEmpty     => _list.Count == 0;
@@ -57,7 +57,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     /// <summary>
     /// Removes an item by Id and marks the dictionary as dirty.
     /// </summary>
-    public bool RemoveById(Guid id)
+    public bool RemoveById(string id)
     {
         int index = _list.FindIndex(item => _getId(item) == id);
         if (index >= 0)
@@ -86,7 +86,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     /// <summary>
     /// Gets the index of an item by Id.
     /// </summary>
-    public int GetIndex(Guid id)
+    public int GetIndex(string id)
     {
         if (!Map.TryGetValue(id, out int index))
             return -1;
@@ -116,7 +116,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     /// </summary>
     private void RebuildMap()
     {
-        _indexMap = new Dictionary<Guid, int>();
+        _indexMap = new Dictionary<string, int>();
         for (int i = 0; i < _list.Count; i++)
         {
             _indexMap[_getId(_list[i])] = i;
