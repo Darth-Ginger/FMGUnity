@@ -268,14 +268,14 @@ namespace FMGUnity.Utility
                 .ToList();
             if (duplicateEdges.Count > 0) duplicates.Add("Edges", duplicateEdges);
 
-            var duplicateTriangles = voronoiMap.Triangles
-                .GroupBy(triangle => triangle.Name)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Key)
-                .ToList();
-            if (duplicateTriangles.Count > 0) duplicates.Add("Triangles", duplicateTriangles);
+            // var duplicateTriangles = voronoiMap.Triangles
+            //     .GroupBy(triangle => triangle.Name)
+            //     .Where(group => group.Count() > 1)
+            //     .Select(group => group.Key)
+            //     .ToList();
+            // if (duplicateTriangles.Count > 0) duplicates.Add("Triangles", duplicateTriangles);
             
-            bool hasDuplicates = duplicateCells.Count > 0 || duplicateSites.Count > 0 || duplicateEdges.Count > 0 || duplicateTriangles.Count > 0;
+            bool hasDuplicates = duplicates.Count > 0;
             
             if (hasDuplicates)
             {

@@ -12,10 +12,12 @@ namespace FMGUnity.Utility
     {
         [SerializeField] private Vector2 _site;
         [SerializeField] private List<string> _vertices;
+        [SerializeField] private List<string> _edges;
         [SerializeField] private List<string> _neighbors;
 
         public Vector2 Site => _site;
         public List<string> Vertices => _vertices;
+        public List<string> Edges => _edges;
         public List<string> Neighbors => _neighbors;
 
         public VoronoiCell(Vector2 site)
@@ -23,8 +25,11 @@ namespace FMGUnity.Utility
             _site = site;
             _vertices = new();
             _neighbors = new();
+            _edges = new();
             Initialize("VoronoiCell", site);
         }
+
+        public VoronoiCell(VoronoiPoint site) : this(site.Position) { }
 
         public void AddNeighbor(VoronoiCell neighbor)
         {
@@ -39,12 +44,14 @@ namespace FMGUnity.Utility
 
         public void AddVertex(VoronoiPoint vertex) 
         {
-            if (!_neighbors.Contains(vertex.Name))
+            if (vertex != null && !_vertices.Contains(vertex.Name))
             {
-                _neighbors.Add(vertex.Name);
+                _vertices.Add(vertex.Name);
             }
         }
         public void AddVertex(VoronoiDiagram diagram, string pointId) => AddVertex(diagram.GetPoint(pointId));
+        public void AddEdge(VoronoiEdge edge) => _edges.Add(edge.Name);
+        public void AddEdge(VoronoiDiagram diagram, string edgeId) => AddEdge(diagram.GetEdge(edgeId));
 
         public override string ToString()
         {

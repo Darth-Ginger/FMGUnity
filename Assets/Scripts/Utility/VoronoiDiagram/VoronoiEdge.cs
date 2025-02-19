@@ -26,7 +26,7 @@ namespace FMGUnity.Utility
         public VoronoiEdge(VoronoiPoint start, VoronoiPoint end, VoronoiCell leftCell = null, VoronoiCell rightCell = null)
         {
             if (start == end) throw new ArgumentException("Start and end points must be different.");
-            if ((leftCell != null && rightCell != null) && leftCell == rightCell) throw new ArgumentException("Left and right cells must be different.");
+            if (leftCell != null && rightCell != null && leftCell == rightCell) throw new ArgumentException("Left and right cells must be different.");
             
             _start = start.Name;
             _start_pos = start.Position;

@@ -17,9 +17,9 @@ namespace BenTools.Mathematics
 		public Vector2 VVertexA = Fortune.VVUnkown, VVertexB = Fortune.VVUnkown;
 		public void AddVertex(Vector2 V)
 		{
-			if(VVertexA==Fortune.VVUnkown)
+			if(float.IsNaN(VVertexA.x) || float.IsNaN(VVertexA.y))
 				VVertexA = V;
-			else if(VVertexB==Fortune.VVUnkown)
+			else if(float.IsNaN(VVertexB.x) || float.IsNaN(VVertexB.y))
 				VVertexB = V;
 			else throw new Exception("Tried to add third vertex!");
 		}
