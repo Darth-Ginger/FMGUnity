@@ -34,25 +34,4 @@ namespace FMGUnity.Utility.Serials
         public override string ToString() => _hasValue ? _value.ToString() : "null";
     }
 
-    [Serializable]
-    public class SerialGuid
-    {
-        [SerializeField] private string _guidString;
-
-        public Guid Value
-        {
-            get => string.IsNullOrEmpty(_guidString) ? Guid.Empty : new Guid(_guidString);
-            set => _guidString = value.ToString();
-        }
-
-        public SerialGuid() => _guidString = Guid.NewGuid().ToString();
-        public SerialGuid(Guid guid) => _guidString = guid.ToString();
-        public SerialGuid(string guid) => _guidString = guid;
-
-        public override string ToString() => Value.ToString();
-
-        public static SerialGuid NewGuid() => new();
-        public static implicit operator Guid(SerialGuid serial) => serial.Value;
-        public static implicit operator SerialGuid(Guid guid) => new(guid);
-    }
 }

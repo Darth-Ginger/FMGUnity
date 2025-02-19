@@ -44,23 +44,10 @@ namespace FMGUnity.Utility
         public void SetRight(string cellId) => SetCell(CellSide.Right, cellId);
         public void SetRight(VoronoiCell cell) => SetCell(CellSide.Right, cell);
 
-
-        public override bool Equals(object obj)
-        {
-            if (obj is VoronoiEdge other)
-            {
-                return (Start == other.Start && End == other.End) ||
-                    (Start == other.End && End == other.Start);
-            }
-            return false;
-        }
-
         public override string ToString()
         {
             return $"VoronoiEdge: Name={Name} : Start={Start} => End={End} : LeftCell={LeftCell} : RightCell={RightCell}";
         }
-
-        public override int GetHashCode() => Start.GetHashCode() ^ End.GetHashCode();
 
     }
 
