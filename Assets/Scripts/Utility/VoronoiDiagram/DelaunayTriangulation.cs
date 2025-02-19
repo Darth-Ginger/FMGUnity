@@ -7,68 +7,6 @@ namespace FMGUnity.Utility
 
     public static class DelaunayTriangulation
     {
-        public static List<Triangle> GenerateInThreads(List<Vector2> points, Rect bounds, int maxThreads)
-        {
-            // Determine the number of threads
-            int numThreads = Mathf.Min(maxThreads, points.Count);
-
-            // Split the grid into subgrids
-            int width = (int)Mathf.Ceil(Mathf.Sqrt(numThreads));
-            int height = (int)Mathf.Ceil((float)numThreads / width);
-
-            // Create a hashtable for each possible subgrid
-            var subgrids = new Dictionary<int, List<Vector2>>();
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < height; j++)
-                {
-                    int index = i + j * width;
-                    subgrids[index] = new List<Vector2>();
-                }
-            }
-
-            // Sort the points according to what section they would fall
-            foreach (var point in points)
-            {
-                int x = (int)Mathf.Floor((point.x - bounds.xMin) / (bounds.xMax - bounds.xMin) * width);
-                int y = (int)Mathf.Floor((point.y - bounds.yMin) / (bounds.yMax - bounds.yMin) * height);
-                int index = x + y * width;
-                subgrids[index].Add(point);
-            }
-
-            // Perform the Generate method on each
-            var threads = new List<System.Threading.Thread>();
-            var results = new List<List<Triangle>>();
-            foreach (var subgrid in subgrids.Values)
-            {
-                var thread = new System.Threading.Thread(() =>
-                {
-                    var result = Generate(subgrid);
-                    lock (results)
-                    {
-                        results.Add(result);
-                    }
-                });
-                threads.Add(thread);
-                thread.Start();
-            }
-
-            // Wait for all threads to finish
-            foreach (var thread in threads)
-            {
-                thread.Join();
-            }
-
-            // Merge them back
-            var mergedTriangles = new List<Triangle>();
-            foreach (var result in results)
-            {
-                mergedTriangles.AddRange(result);
-            }
-
-            return mergedTriangles;
-        }
-
         public static List<Triangle> Generate(List<Vector2> points)
         {
             // Create a list to store triangles
@@ -110,7 +48,9 @@ namespace FMGUnity.Utility
                 // Step 6: Add new triangles connecting the point to each edge of the polygon
                 foreach (var edge in polygon)
                 {
-                    triangles.Add(new Triangle(edge.Start, edge.End, point));
+                    Vector2 edgeStart = edge.Value.StartPos;
+                    Vector2 edgeEnd   = edge.Value.EndPos;
+                    triangles.Add(new Triangle(edgeStart, edgeEnd, point));
                 }
             }
 
@@ -170,9 +110,9 @@ namespace FMGUnity.Utility
             return det > 0;
         }
 
-        private static List<Edge> FindHoleBoundary(List<Triangle> badTriangles)
+        private static Dictionary<string, VoronoiEdge> FindHoleBoundary(List<Triangle> badTriangles)
         {
-            Dictionary<Edge, int> edgeUsage = new();
+            Dictionary<VoronoiEdge, int> edgeUsage = new();
 
             foreach (var triangle in badTriangles)
             {
@@ -189,12 +129,12 @@ namespace FMGUnity.Utility
                 }
             }
 
-            var polygon = new List<Edge>();
+            var polygon = new Dictionary<string, VoronoiEdge>();
             foreach (var edge in edgeUsage)
             {
-                if (edge.Value == 1)  // Only keep edges that are not shared
+                if (edge.Value == 1 && !polygon.ContainsKey(edge.Key.Name))  // Only keep edges that are not shared
                 {
-                    polygon.Add(edge.Key);
+                    polygon.Add(edge.Key.Name, edge.Key);
                 }
             }
 
@@ -209,34 +149,4 @@ namespace FMGUnity.Utility
         }
     }
 
-    [Serializable]
-    public class Edge
-    {
-        [SerializeField] private Vector2 _start;
-        [SerializeField] private Vector2 _end;
-
-        public Vector2 Start => _start;
-        public Vector2 End   => _end;
-
-        public Edge(Vector2 start, Vector2 end)
-        {
-            _start = start;
-            _end = end;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Edge other)
-            {
-                return (Start == other.Start && End == other.End) ||
-                    (Start == other.End && End == other.Start);
-            }
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Start.GetHashCode() ^ End.GetHashCode();
-        }
-    }
 }

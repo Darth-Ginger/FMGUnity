@@ -35,6 +35,8 @@ namespace FMGUnity.Utility
         public Triangle     GetTriangle (string id) => _triangleMap.Get(id);
         public VoronoiPoint GetSite     (string id) => _siteMap.Get(id);
         public VoronoiPoint GetSite     (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
+        public VoronoiPoint GetPoint    (string id) => _siteMap.Get(id);
+        public VoronoiPoint GetPoint    (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
         public VoronoiCell  GetCell     (string id) => _cellMap.Get(id);
         public VoronoiCell  GetCell     (Vector2 site) => _cellMap.GetBy(c => c.Site == site);
         public VoronoiEdge  GetEdge     (string id) => _edgeMap.Get(id);
@@ -76,9 +78,11 @@ namespace FMGUnity.Utility
                 _triangleMap = new(DelaunayTriangulation.Generate(Sites.Select(p => p.Position).ToList()));
             }
             else{
-                Debug.Log($"Generating Delaunay Triangulation in {maxThreads} threads");
-                Rect bounds = new Rect(0, 0, MapBounds.x, MapBounds.y);
-                _triangleMap = new(DelaunayTriangulation.GenerateInThreads(Sites.Select(p => p.Position).ToList(), bounds, maxThreads));
+                // Debug.Log($"Generating Delaunay Triangulation in {maxThreads} threads");
+                // Rect bounds = new Rect(0, 0, MapBounds.x, MapBounds.y);
+                Debug.LogError("Multi-threading not implemented yet");
+                _triangleMap = new(DelaunayTriangulation.Generate(Sites.Select(p => p.Position).ToList()));
+
             }
 
             // Generate Voronoi diagram
@@ -139,21 +143,13 @@ namespace FMGUnity.Utility
 
             if (!regenerate && _cellMap.List.Count > 0) return;
 
-            // Create a dictionary to store the cells
-            var cells = new Dictionary<Vector2, VoronoiCell>();
-
             // Initialize cells for each site
             foreach (var site in _siteMap.List)
             {
-                cells[site.Position] = new VoronoiCell(site.Position);
-                site.PartOfCell(cells[site.Position].Name);
+                VoronoiCell newCell = new VoronoiCell(site.Position);
+                site.PartOfCell(newCell.Name);
+                _cellMap.Add(newCell);
             }
-
-            // Set up cell map
-            _cellMap = new(cells.Values.ToList());
-
-            // Store edges to track shared ones
-            Dictionary<Edge, VoronoiEdge> edgeMap = new();
 
             foreach (var triangle in _triangleMap.List)
             {
@@ -161,51 +157,52 @@ namespace FMGUnity.Utility
 
                 foreach (var edge in triangle.GetEdges())
                 {
-                    if (!edgeMap.ContainsKey(edge))
+                    if (!_edgeMap.Contains(edge))
                     {
-                        //TODO: Update the GetEdges to return VoronoiEdges or find a way to map edge back to VoronoiEdge
-                        VoronoiPoint start = _siteMap.GetBy(p => p.Position == edge.Start);
-                        VoronoiPoint end = _siteMap.GetBy(p => p.Position == edge.End);
+                        VoronoiPoint start = _siteMap.Get(edge.Start);
+                        VoronoiPoint end   = _siteMap.Get(edge.End);
                         if (start == null) {
-                            Debug.LogWarning($"Start of {edge} is null");
+                            Debug.LogWarning($"Start of {edge.Name} is null");
                             continue;
                             }
                         if (end == null) {
-                            Debug.LogWarning($"End of {edge} is null");
+                            Debug.LogWarning($"End of {edge.Name} is null");
                             continue;
                             }
+                        if (start == end) {
+                            Debug.LogWarning($"Start and end of {edge.Name} are the same");
+                            continue;
+                        }
 
-                        edgeMap[edge] = new VoronoiEdge(start, end);
+                        _edgeMap.Add(new VoronoiEdge(start, end));
                     }
 
                     foreach (var vertex in triangle.Vertices)
                     {
-                        if (cells.TryGetValue(vertex, out VoronoiCell cell))
+                        if (_cellMap.TryGetBy(item => item.Site == vertex, out VoronoiCell cell))
                         {
-                            if (edgeMap[edge].LeftCell == null || edgeMap[edge].LeftCell == string.Empty)
+                            if (_edgeMap.Get(edge)?.LeftCell == null || _edgeMap.Get(edge)?.LeftCell == string.Empty)
                             {
                                 // Assign the cell to the left side of the edge
-                                edgeMap[edge].SetLeft(cell);
+                                _edgeMap.Get(edge).SetLeft(cell);
                             }
-                            else if (edgeMap[edge].RightCell == null || edgeMap[edge].RightCell == string.Empty)
+                            else if (_edgeMap.Get(edge)?.RightCell == null || _edgeMap.Get(edge)?.RightCell == string.Empty)
                             {
                                 // Assign the cell to the right side of the edge
-                                edgeMap[edge].SetRight(cell);
+                                _edgeMap.Get(edge).SetRight(cell);
                             }
                         }
                     }
 
                     // Add Neighbors to cell 
-                    if (edgeMap[edge].LeftCell != string.Empty && edgeMap[edge].RightCell != string.Empty)
+                    if (_edgeMap.Get(edge).LeftCell != string.Empty && _edgeMap.Get(edge).RightCell != string.Empty)
                     {
-                        _cellMap.Get(edgeMap[edge].LeftCell).AddNeighbor(this, edgeMap[edge].RightCell);
-                        _cellMap.Get(edgeMap[edge].RightCell).AddNeighbor(this, edgeMap[edge].LeftCell);
+                        _cellMap.Get(_edgeMap.Get(edge).LeftCell).AddNeighbor(this, _edgeMap.Get(edge).RightCell);
+                        _cellMap.Get(_edgeMap.Get(edge).RightCell).AddNeighbor(this, _edgeMap.Get(edge).LeftCell);
                     }
                 }
             }
 
-            // Set up edge map
-            _edgeMap = new(edgeMap.Values.ToList());
         }
 
         /// <summary>
@@ -253,13 +250,14 @@ namespace FMGUnity.Utility
         {
             // Order the vertices in a clockwise manner for rendering
             Vector2 center = Vector2.zero;
-            foreach (var vertex in cell.Vertices)
+            List<Vector2> vertices = _cellMap.Get(cell).Vertices.Select(v => _cellMap.Get(v).Site).ToList();
+            foreach (var vertex in vertices)
             {
                 center += vertex;
             }
             center /= cell.Vertices.Count;
 
-            cell.Vertices.Sort((v1, v2) =>
+            vertices.Sort((v1, v2) =>
             {
                 float angle1 = Mathf.Atan2(v1.y - center.y, v1.x - center.x);
                 float angle2 = Mathf.Atan2(v2.y - center.y, v2.x - center.x);

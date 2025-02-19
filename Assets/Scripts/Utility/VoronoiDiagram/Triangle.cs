@@ -12,12 +12,12 @@ namespace FMGUnity.Utility
     {
         // Vertices of the triangle
         [SerializeField] public Vector2[] Vertices => _vertices;
-        [SerializeField] public List<Edge> Edges => _edges;
+        [SerializeField] public List<VoronoiEdge> Edges => _edges;
 
         // Cached circumcenter and circumradius
 
         [SerializeField] private Vector2[] _vertices = new Vector2[3];
-        [SerializeField] private List<Edge> _edges = new();
+        [SerializeField] private List<VoronoiEdge> _edges = new();
         [SerializeField] private SerialNullable<Vector2> _circumcenter = new();
         [SerializeField] private SerialNullable<float> _circumradiusSquared = new();
 
@@ -35,9 +35,14 @@ namespace FMGUnity.Utility
         /// <summary>
         /// Gets all edges of the triangle.
         /// </summary>
-        public List<Edge> GetEdges()
+        public List<VoronoiEdge> GetEdges()
         {
-            return new List<Edge>
+            // No 2 edges can be the same
+            if (Vertices[0] == Vertices[1] || Vertices[1] == Vertices[2] || Vertices[2] == Vertices[0])
+            {
+                throw new ArgumentException("No 2 edges can be the same");
+            }
+            return new List<VoronoiEdge>
         {
             new(Vertices[0], Vertices[1]),
             new(Vertices[1], Vertices[2]),

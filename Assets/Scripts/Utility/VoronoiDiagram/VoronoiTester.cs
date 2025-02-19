@@ -5,6 +5,7 @@ using UnityEditor;
 using System.IO;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
+using System.Linq;
 
 namespace FMGUnity.Utility
 {
@@ -70,7 +71,6 @@ namespace FMGUnity.Utility
             Debug.Log($"Voronoi diagram generated in {elapsedTime} seconds.");
         }
 
-        [Button("Clear Visualization")]
         void ClearVisualization()
         {
             if (meshRenderer != null)
@@ -241,6 +241,61 @@ namespace FMGUnity.Utility
             highlightedTexture.Apply();
             meshRenderer.material.mainTexture = highlightedTexture;
         }
+
+        [Button("Verify Duplicates")]
+        void VerifyDuplicates()
+        {
+            Dictionary<string, List<string>> duplicates = new();
+
+            var duplicateCells = voronoiMap.Cells
+                .GroupBy(cell => cell.Name)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+            if (duplicateCells.Count > 0) duplicates.Add("Cells", duplicateCells);
+            
+            var duplicateSites = voronoiMap.Sites
+                .GroupBy(site => site.Name)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+            if (duplicateSites.Count > 0) duplicates.Add("Sites", duplicateSites);
+            
+            var duplicateEdges = voronoiMap.Edges
+                .GroupBy(point => point.Name)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+            if (duplicateEdges.Count > 0) duplicates.Add("Edges", duplicateEdges);
+
+            var duplicateTriangles = voronoiMap.Triangles
+                .GroupBy(triangle => triangle.Name)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+            if (duplicateTriangles.Count > 0) duplicates.Add("Triangles", duplicateTriangles);
+            
+            bool hasDuplicates = duplicateCells.Count > 0 || duplicateSites.Count > 0 || duplicateEdges.Count > 0 || duplicateTriangles.Count > 0;
+            
+            if (hasDuplicates)
+            {
+                string logString = "Duplicate cells, sites, edges or triangles found!\n";
+                foreach (var kvp in duplicates)
+                {
+                    logString += $"\t{kvp.Key}: {kvp.Value.Count}\n";
+                    foreach (var item in kvp.Value)
+                    {
+                        logString += $"\t\t{item}\n";
+                    }
+                }
+                Debug.LogError(logString);
+            }
+            else
+            {
+                Debug.Log("No duplicates found.");
+            }
+        }
+   
     }
 
 }

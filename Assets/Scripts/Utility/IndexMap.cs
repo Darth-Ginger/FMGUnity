@@ -7,11 +7,11 @@ using UnityEngine;
 /// A generic helper class that maintains a lazily updated dictionary for mapping object Ids to their indices in a list.
 /// </summary>
 [System.Serializable]
-public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
+public class IndexMap<T>: ISerializationCallbackReceiver where T : Identifiable
 {
     [SerializeField] private List<T> _list = new();
     private Func<T, string> _getId => item => item.Name; // Function to retrieve Id
-    private Dictionary<string, int> _indexMap;
+    private Dictionary<string, int> _indexMap = new();
     private bool _isMapDirty = true;
 
     public IndexMap()
@@ -31,7 +31,7 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     {
         get
         {
-            if (_isMapDirty || _indexMap == null)
+            if (_isMapDirty && _list.Count > 0)
                 RebuildMap();
             return _indexMap;
         }
@@ -40,6 +40,10 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     public List<T> List     => _list;
     public T Get(string id)   => Map.TryGetValue(id, out int index) ? _list[index] : default(T);
     public T Get(int index) => index >= 0 && index < _list.Count ? _list[index] : default(T);
+    public T Get(T item) => Get(item.Name);
+    public bool Contains(string id) => Map != null && Map.ContainsKey(id);
+    public bool Contains(T item) => Contains(item.Name);
+    #nullable enable annotations 
     public int Count        => _list.Count;
     public bool IsEmpty     => _list.Count == 0;
     
@@ -107,19 +111,54 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
     public T GetBy(Predicate<T> predicate)
     {
         T match = _list.Find(predicate);
-        return match == null ? default(T) : match;
+        return match ?? default(T);
     }
 
+    /// <summary>
+    /// Tries to find an item in the list that matches the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate to match against the items in the list.</param>
+    /// <param name="match">When this method returns, contains the item that matches the predicate, if found; otherwise, the default value for the type.</param>
+    /// <returns>true if an item that matches the predicate is found; otherwise, false.</returns>
+    public bool TryGetBy(Predicate<T> predicate, out T match)
+    {
+        match = GetBy(predicate);
+        return match != null;
+    }
+
+    /// <summary>
+    /// Gets the value associated with the specified key.
+    /// </summary>
+    /// <param name="key">The key of the value to get.</param>
+    /// <param name="value">When this method returns, the value associated with the specified key, if the key is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
+    /// <returns>true if the object contains an element with the specified key; otherwise, false.</returns>
+    public bool TryGetValue(string key, out T value)
+    {
+        if (Map.TryGetValue(key, out int index))
+        {
+            value = _list[index];
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 
     /// <summary>
     /// Rebuilds the dictionary mapping Ids to their indices.
     /// </summary>
     private void RebuildMap()
     {
+        // Safety Check
+        if (!_isMapDirty || _list.Count == 0) return;
+
         _indexMap = new Dictionary<string, int>();
-        for (int i = 0; i < _list.Count; i++)
+        foreach (var item in _list)
         {
-            _indexMap[_getId(_list[i])] = i;
+            if (item != null && item.Name != "" && item.Name != null)
+            {
+                _indexMap[_getId(item)] = _list.IndexOf(item);
+            }
         }
         _isMapDirty = false;
     }
@@ -133,11 +172,14 @@ public class IndexMap<T>: ISerializationCallbackReceiver where T : IIdentifiable
 
     public void OnBeforeSerialize()
     {
-        RebuildMap();
+
     }
 
     public void OnAfterDeserialize()
     {
-        RebuildMap();
+        if (_isMapDirty && _list.Count > 0)
+        { 
+            RebuildMap();
+        }
     }
 }

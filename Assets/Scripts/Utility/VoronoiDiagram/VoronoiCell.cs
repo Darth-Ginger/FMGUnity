@@ -10,16 +10,19 @@ namespace FMGUnity.Utility
     [System.Serializable]
     public class VoronoiCell: Identifiable
     {
+        [SerializeField] private Vector2 _site;
+        [SerializeField] private List<string> _vertices;
+        [SerializeField] private List<string> _neighbors;
 
-        [SerializeField] public Vector2 Site; // Voronoi site
-        [SerializeField] public List<Vector2> Vertices; // Cell vertices
-        [SerializeField] public List<string> Neighbors { get; } // Adjacent cells
+        public Vector2 Site => _site;
+        public List<string> Vertices => _vertices;
+        public List<string> Neighbors => _neighbors;
 
         public VoronoiCell(Vector2 site)
         {
-            Site = site;
-            Vertices = new List<Vector2>();
-            Neighbors = new();
+            _site = site;
+            _vertices = new();
+            _neighbors = new();
             Initialize("VoronoiCell", site);
         }
 
@@ -30,11 +33,18 @@ namespace FMGUnity.Utility
                 Neighbors.Add(neighbor.Name);
             }
         }
-
         public void AddNeighbor(VoronoiDiagram diagram, string cellId) => AddNeighbor(diagram.GetCell(cellId));
-        
         public bool HasNeighbor(string cellId) => Neighbors.Contains(cellId);
         public bool HasNeighbor(VoronoiCell cell) => Neighbors.Contains(cell.Name);
+
+        public void AddVertex(VoronoiPoint vertex) 
+        {
+            if (!_neighbors.Contains(vertex.Name))
+            {
+                _neighbors.Add(vertex.Name);
+            }
+        }
+        public void AddVertex(VoronoiDiagram diagram, string pointId) => AddVertex(diagram.GetPoint(pointId));
 
         public override string ToString()
         {
