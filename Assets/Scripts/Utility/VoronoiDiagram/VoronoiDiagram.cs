@@ -15,28 +15,24 @@ namespace FMGUnity.Utility
     {
 
         // Serialiable fields for Unity and JSON
-        // [SerializeField] private List<Triangle>     _triangles  = new();
-        [SerializeField] private List<VoronoiPoint> _sites     = new();
+        [SerializeField] private List<VoronoiPoint> _sites      = new();
         [SerializeField] private List<VoronoiCell>  _cells      = new();
         [SerializeField] private List<VoronoiEdge>  _edges      = new();
         [SerializeField] private List<VoronoiPoint> _vertices   = new();
         
         // Public properties
-        // public IReadOnlyList<Triangle>     Triangles => _triangleMap.List;
         public IReadOnlyList<VoronoiPoint> Sites     => _siteMap.List;
         public IReadOnlyList<VoronoiCell>  Cells     => _cellMap.List;
         public IReadOnlyList<VoronoiEdge>  Edges     => _edgeMap.List;
         public IReadOnlyList<VoronoiPoint> Vertices  => _vertexMap.List;
 
         // Object -> Index Mappings
-        // private IndexMap<Triangle>     _triangleMap = new();
         private IndexMap<VoronoiPoint> _siteMap    = new();
         private IndexMap<VoronoiCell>  _cellMap     = new();
         private IndexMap<VoronoiEdge>  _edgeMap     = new();
         private IndexMap<VoronoiPoint> _vertexMap   = new();
 
         // Public Map Accessors
-        // public Triangle     GetTriangle (string id) => _triangleMap.Get(id);
         public VoronoiPoint GetSite     (string id) => _siteMap.Get(id);
         public VoronoiPoint GetSite     (Vector2 position) => _siteMap.GetBy(p => p.Position == position);
         public VoronoiPoint GetPoint    (string id) => _siteMap.Get(id) ?? _vertexMap.Get(id);
@@ -56,7 +52,7 @@ namespace FMGUnity.Utility
         public int Seed             { get; private set; }
         public int SiteCount       { get; private set; }
 
-        public VoronoiDiagram(Vector2Int mapBounds, int siteCount = 100, int seed = 42, bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
+        public VoronoiDiagram(Vector2Int mapBounds, int siteCount = 100, int seed = 42, bool regenerate = false)
         {
             MapBounds = mapBounds;
             Seed = seed;
@@ -64,17 +60,14 @@ namespace FMGUnity.Utility
 
             Random.InitState(Seed);
 
-            Generate(regenerate, useMultiThreading, maxThreads);
+            Generate(regenerate);
         }
 
-        public VoronoiDiagram Generate(bool regenerate = false, bool useMultiThreading = true, int maxThreads = 8)
+        public VoronoiDiagram Generate(bool regenerate = false)
         {
             if (!regenerate && IsInitialized()) return this;
             
             Clear();
-
-            // Generate random sites
-            GenerateSites(SiteCount);
 
             // Generate Voronoi diagram
             GenerateDiagram();
@@ -97,7 +90,7 @@ namespace FMGUnity.Utility
 
                 for (int i = 0; i < count; i++)
                 {
-                    _siteMap.Add(new VoronoiPoint(
+                    AddSite(new VoronoiPoint(
                         Random.Range(0, MapBounds.x),
                         Random.Range(0, MapBounds.y)
                     ));
@@ -106,6 +99,66 @@ namespace FMGUnity.Utility
             }
         }
 
+        // Add / Remove Sites
+        #region Add / Remove Sites
+        public void AddSite(VoronoiPoint site) 
+        {
+            if (site != null && !_siteMap.Contains(site.Name))
+            {
+                _siteMap.Add(site);
+            }
+        }
+        public void AddSites(List<VoronoiPoint> sites) 
+        {
+            foreach (var site in sites)
+            {
+                AddSite(site);
+            }
+        }
+        public void RemoveSite(VoronoiPoint site) 
+        {
+            _siteMap.RemoveById(site.Name);
+        }
+        public void RemoveSites(List<VoronoiPoint> sites) 
+        {
+            foreach (var site in sites)
+            {
+                RemoveSite(site);
+            }
+        }
+        #endregion Add / Remove Sites
+
+        // Add / Remove Cells
+        #region Add / Remove Cells
+        public void AddCell(VoronoiCell cell) 
+        {
+            if (cell != null && !_cellMap.Contains(cell.Name))
+            {
+                _cellMap.Add(cell);
+            }
+        }
+        public void AddCells(List<VoronoiCell> cells) 
+        {
+            foreach (var cell in cells)
+            {
+                AddCell(cell);
+            }
+        }
+        public void RemoveCell(VoronoiCell cell) 
+        {
+            _cellMap.RemoveById(cell.Name);
+        }
+        public void RemoveCells(List<VoronoiCell> cells) 
+        {
+            foreach (var cell in cells)
+            {
+                RemoveCell(cell);
+            }
+        }
+        #endregion Add / Remove Cells
+
+        // Add / Remove Vertices
+        #region Add / Remove Vertices
         public void AddVertex(VoronoiPoint point) 
         {
             if (point != null && !_vertexMap.Contains(point.Name))
@@ -113,7 +166,6 @@ namespace FMGUnity.Utility
                 _vertexMap.Add( point);
             }
         }
-
         public void AddVertices(List<VoronoiPoint> points) 
         {
             foreach (var point in points)
@@ -121,12 +173,10 @@ namespace FMGUnity.Utility
                 AddVertex(point);
             }
         }
-
         public void RemoveVertex(VoronoiPoint point) 
         {
              _vertexMap.RemoveById(point.Name);
         }
-
         public void RemoveVertices(List<VoronoiPoint> points) 
         {
             foreach (var point in points)
@@ -134,7 +184,10 @@ namespace FMGUnity.Utility
                 RemoveVertex(point);
             }
         }
+        #endregion Add / Remove Vertices
 
+        // Add / Remove Edges
+        #region Add / Remove Edges
         public void AddEdge(VoronoiEdge edge)
         {
             if (edge != null && !_edgeMap.Contains(edge))
@@ -142,7 +195,6 @@ namespace FMGUnity.Utility
                 _edgeMap.Add(edge);
             }
         }
-
         public void AddEdges(List<VoronoiEdge> edges)
         {
             foreach (var edge in edges)
@@ -150,7 +202,6 @@ namespace FMGUnity.Utility
                 AddEdge(edge);
             }
         }
-
         public void RemoveEdge(VoronoiEdge edge)
         {
             if (edge != null && _edgeMap.Contains(edge))
@@ -158,7 +209,6 @@ namespace FMGUnity.Utility
                 _edgeMap.RemoveById(edge.Name);
             }
         }
-
         public void RemoveEdges(List<VoronoiEdge> edges)
         {
             foreach (var edge in edges)
@@ -166,6 +216,7 @@ namespace FMGUnity.Utility
                 RemoveEdge(edge);
             }
         }
+        #endregion Add / Remove Edges
 
         /// <summary>
         /// Clears the Voronoi diagram, removing all sites, triangles and cells.
@@ -191,24 +242,36 @@ namespace FMGUnity.Utility
         /// </remarks>
         private void GenerateDiagram( bool regenerate = false)
         {
+            // Initialize temp data structures
+            Dictionary<Vector2, VoronoiCell> siteToCell = new();
 
             if (!regenerate && _cellMap.List.Count > 0) return;
 
-            VoronoiGraph vGraph = Fortune.ComputeVoronoiGraph(Sites.Select(p => p.Position).ToList());
+            // 1. Generate the sites and add them to _siteMap
+            GenerateSites(SiteCount);
 
-            Dictionary<Vector2, VoronoiCell> siteToCell = new();
+            // 2. Generate the Voronoi Graph
+            List<Vector2> sites = Sites.Select(p => p.Position).ToList();
+            Debug.Log($"Generated {sites.Count} sites.");
+            VoronoiGraph vGraph = Fortune.ComputeVoronoiGraph(sites);
+
+            Debug.Log($"Generated a Voronoi Graph with {vGraph.Edges.Count} edges and {vGraph.Vertices.Count} vertices.");
+
 
             // Convert the results to your VoronoiDiagram data structures
 
-            // Initialize cells for each site
+            // 3. Initialize cells for each site and add them to _cellMap
             foreach (Vector2 site in Sites.Select(p => p.Position).ToList())
             {
-                VoronoiCell newCell = new VoronoiCell(site);
-                _cellMap.Add(newCell);
-                _siteMap.Get(site).PartOfCell(newCell.Name);
+                VoronoiCell newCell = new(site);
+                AddCell(newCell);
+                GetSite(site).PartOfCell(newCell.Name);
                 siteToCell.Add(site, newCell);
             }
 
+            
+
+            // 4. Initialize edges and add them to _edgeMap
             foreach (BenTools.Mathematics.VoronoiEdge edge in vGraph.Edges)
             {
                 if (edge.VVertexA == edge.VVertexB ||
@@ -216,42 +279,44 @@ namespace FMGUnity.Utility
                     float.IsNaN(edge.VVertexA.x) || float.IsNaN(edge.VVertexB.x)
                     ) continue;
 
-                // Get start and end points of the edge
+                // 4.1 Get start and end points of the edge
                 VoronoiPoint start = new(edge.VVertexA);
                 VoronoiPoint end   = new(edge.VVertexB);
-                AddVertices(new List<VoronoiPoint>(){start, end}); 
 
-                // Get cells associate to a given edge
-                VoronoiCell leftCell = siteToCell[edge.LeftData];
+                // 4.2 Add start and end vertices to _vertexMap
+                AddVertex(start);
+                AddVertex(end);
+
+                // 4.3 Get cells associate to a given edge and add the vertices to them
+                VoronoiCell leftCell  = siteToCell[edge.LeftData];
+                leftCell.AddVertex(start);
+                leftCell.AddVertex(end);
                 VoronoiCell rightCell = siteToCell[edge.RightData];
+                rightCell.AddVertex(start);
+                rightCell.AddVertex(end);
 
-                // Create new edge
-                VoronoiEdge newEdge = new(start, end);
+                // 4.4 Create new edge and add it to _edgeMap
                 if (start == null) {
-                    Debug.LogWarning($"Start of {newEdge.Name} is null");
+                    Debug.LogError($"Start of Edge cannot be null");
                     continue;
                     }
                 if (end == null) {
-                    Debug.LogWarning($"End of {newEdge.Name} is null");
+                    Debug.LogWarning($"End of Edge cannot be null");
                     continue;
                     }
                 if (start == end) {
-                    Debug.LogWarning($"Start and end of {newEdge.Name} are the same");
+                    Debug.LogWarning($"Start and end cannot be the same");
                     continue;
                     }
+                VoronoiEdge newEdge = new(start, end);
                 AddEdge(newEdge);
 
+                // 4.5 Add edge to both cells 
                 if (leftCell != null && rightCell != null && leftCell != rightCell)
                 {
                     // Add edge to both cells
                     leftCell .AddEdge(newEdge);
                     rightCell.AddEdge(newEdge);
-
-                    // Add vertices to each cell
-                    leftCell .AddVertex(this, newEdge.Start);
-                    leftCell .AddVertex(this, newEdge.End);
-                    rightCell.AddVertex(this, newEdge.Start);
-                    rightCell.AddVertex(this, newEdge.End);
                 }
             }
         }
@@ -266,28 +331,28 @@ namespace FMGUnity.Utility
         {
              // Ensure IndexMaps are synchronized internally
             _siteMap?.OnBeforeSerialize();
-            // _triangleMap?.OnBeforeSerialize();
             _cellMap?.OnBeforeSerialize();
             _edgeMap?.OnBeforeSerialize();
+            _vertexMap?.OnBeforeSerialize();
 
-            _sites     = _siteMap?.List ?? new();
-            // _triangles  = _triangleMap?.List ?? new();
+            _sites      = _siteMap?.List ?? new();
             _cells      = _cellMap?.List ?? new();
             _edges      = _edgeMap?.List ?? new();
+            _vertices   = _vertexMap?.List ?? new();
         }
 
         public void OnAfterDeserialize()
         {
-            _siteMap = new(_sites);
-            // _triangleMap = new(_triangles);
-            _cellMap = new(_cells);
-            _edgeMap = new(_edges);
+            _siteMap   = new(_sites);
+            _cellMap   = new(_cells);
+            _edgeMap   = new(_edges);
+            _vertexMap = new(_vertices);
 
             // Rebuild maps
             _siteMap.OnAfterDeserialize();
-            // _triangleMap.OnAfterDeserialize();
             _cellMap.OnAfterDeserialize(); 
             _edgeMap.OnAfterDeserialize();
+            _vertexMap.OnAfterDeserialize();
         }
     }
 }

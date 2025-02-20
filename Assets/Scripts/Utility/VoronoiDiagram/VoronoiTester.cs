@@ -57,7 +57,7 @@ namespace FMGUnity.Utility
             if (RandomSeed) seed = Random.Range(1, 10000);
 
             // Initialize and generate the Voronoi map
-            voronoiMap = new(size, siteCount, seed, true, useMultiThreading, maxThreads);
+            voronoiMap = new(size, siteCount, seed, true);
 
             if (meshRenderer != null)
             {
