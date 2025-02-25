@@ -1,0 +1,18 @@
+{
+    "name": "GimmeDOTSGeometry.Tools.DotsPlotter",
+    "rootNamespace": "GimmeDOTSGeometry.Tools.DotsPlotter",
+    "references": [
+        "GUID:69fb4b5df1b1de64c89897f83ebc9235"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

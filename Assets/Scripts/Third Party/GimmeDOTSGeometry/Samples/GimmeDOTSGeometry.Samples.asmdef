@@ -1,0 +1,46 @@
+{
+    "name": "GimmeDOTSGeometry.Samples",
+    "rootNamespace": "GimmeDOTSGeometry.Samples",
+    "references": [
+        "GimmeDOTSGeometry",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Burst",
+        "Unity.EditorCoroutines.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Android",
+        "EmbeddedLinux",
+        "GameCoreScarlett",
+        "GameCoreXboxOne",
+        "iOS",
+        "LinuxStandalone64",
+        "CloudRendering",
+        "Lumin",
+        "macOSStandalone",
+        "PS4",
+        "PS5",
+        "Stadia",
+        "Switch",
+        "tvOS",
+        "WSA",
+        "WebGL",
+        "WindowsStandalone32",
+        "WindowsStandalone64",
+        "XboxOne"
+    ],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.collections",
+            "expression": "2.1.0-exp.4",
+            "define": "COLLECTIONS_2_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

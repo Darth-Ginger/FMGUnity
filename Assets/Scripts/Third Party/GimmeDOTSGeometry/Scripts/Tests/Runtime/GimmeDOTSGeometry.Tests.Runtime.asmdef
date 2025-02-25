@@ -1,0 +1,44 @@
+{
+    "name": "GimmeDOTSGeometry.Tests.Runtime",
+    "rootNamespace": "GimmeDOTSGeometry",
+    "references": [
+        "UnityEngine.TestRunner",
+        "GimmeDOTSGeometry",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "GimmeDOTSGeometry.Editor",
+        "Unity.Burst",
+        "GimmeDOTSGeometry.Tools.DotsPlotter"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Android",
+        "EmbeddedLinux",
+        "GameCoreScarlett",
+        "GameCoreXboxOne",
+        "iOS",
+        "LinuxStandalone64",
+        "CloudRendering",
+        "Lumin",
+        "macOSStandalone",
+        "PS4",
+        "PS5",
+        "Stadia",
+        "Switch",
+        "tvOS",
+        "WSA",
+        "WebGL",
+        "WindowsStandalone32",
+        "WindowsStandalone64",
+        "XboxOne"
+    ],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

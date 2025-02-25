@@ -1,0 +1,24 @@
+{
+    "name": "GimmeDOTSGeometry",
+    "rootNamespace": "GimmeDOTSGeometry",
+    "references": [
+        "Unity.Mathematics",
+        "Unity.Burst",
+        "Unity.Collections"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.collections",
+            "expression": "2.1.0-exp.4",
+            "define": "COLLECTIONS_2_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

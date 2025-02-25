@@ -1,0 +1,21 @@
+{
+    "name": "GimmeDOTSGeometry.Editor",
+    "rootNamespace": "GimmeDOTSGeometry",
+    "references": [
+        "GimmeDOTSGeometry",
+        "Unity.Burst.Editor",
+        "Unity.Collections",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
