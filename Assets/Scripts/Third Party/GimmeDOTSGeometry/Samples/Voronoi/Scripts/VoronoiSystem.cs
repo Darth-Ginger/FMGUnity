@@ -55,12 +55,14 @@ namespace GimmeDOTSGeometry.Samples
 
         private List<GameObject> points = new List<GameObject>();
 
-        private List<GameObject> cells = new List<GameObject>();
+        [SerializeField] private List<GameObject> cells = new List<GameObject>();
         private List<MeshFilter> cellMFs = new List<MeshFilter>();
-        private List<GameObject> cellOutlines = new List<GameObject>();
+        [SerializeField] private List<GameObject> cellOutlines = new List<GameObject>();
         private List<MeshFilter> cellOutlineMFs = new List<MeshFilter>();
 
-        private List<GameObject> delaunayTriangles = new List<GameObject>();
+        [SerializeField] private List<DCEL> cellsDCELs = new List<DCEL>();
+
+        [SerializeField] private List<GameObject> delaunayTriangles = new List<GameObject>();
         private List<MeshFilter> delaunayTrianglesMFs = new List<MeshFilter>();
 
         private List<GameObject> spaceships = new List<GameObject>();
@@ -69,7 +71,7 @@ namespace GimmeDOTSGeometry.Samples
 
         private NativeList<float2> sites;
         private NativeArray<NativePolygon2D> polygons;
-        private NativeArray<int> polygonSites;
+        [SerializeField] private NativeArray<int> polygonSites;
         private NativeArray<int> voronoiLookupTable;
 
         private NativeList<float2> velocities;
@@ -371,6 +373,7 @@ namespace GimmeDOTSGeometry.Samples
                     var cellMF = cell.AddComponent<MeshFilter>();
                     var cellMR = cell.AddComponent<MeshRenderer>();
 
+
                     cellMF.mesh = polyMesh;
                     cellMR.sharedMaterial = this.cellMaterial;
 
@@ -397,6 +400,9 @@ namespace GimmeDOTSGeometry.Samples
                     this.cellMFs.Add(cellMF);
                     this.cellOutlines.Add(cellOutline);
                     this.cellOutlineMFs.Add(cellOutlineMF);
+
+                    DCEL cellDCEL = NativePolygon2D.ConvertToDCEL(this.polygons[i], i);
+                    cellsDCELs.Add(cellDCEL);
                 } else
                 {
                     Debug.LogWarning($"Polygon {i} of the Voronoi Diagram could not be calculated due to floating-point precision problems. Please refer to the manual for more information");

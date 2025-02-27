@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 namespace GimmeDOTSGeometry
 {
+    [System.Serializable]
     //Doubly-connected edge list (DCEL)
     //Loosely based on the book from Mark de Berg et al: "Computational Geometry"
     public struct DCEL : IDisposable
