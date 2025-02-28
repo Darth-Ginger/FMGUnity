@@ -140,6 +140,33 @@ public class VoronoiDiagram
         EdgeIndexMap.ContainsKey(id)    || 
         CellIndexMap.ContainsKey(id);
 
+
+    public void Clear()
+    {
+        sites = new VoronoiSite[0];
+        vertices = new VoronoiVertex[0];
+        edges = new VoronoiEdge[0];
+        cells = new VoronoiCell[0];
+        SiteIndexMap.Clear();
+        VertexIndexMap.Clear();
+        EdgeIndexMap.Clear();
+        CellIndexMap.Clear();
+    }
+    #endregion
+
+
+    #region Serialization
+
+    public string Serialize()
+    {
+        return JsonUtility.ToJson(this);
+    }
+
+    public static VoronoiDiagram Deserialize(string json)
+    {
+        return JsonUtility.FromJson<VoronoiDiagram>(json);
+    }
+
     #endregion
 
 }
