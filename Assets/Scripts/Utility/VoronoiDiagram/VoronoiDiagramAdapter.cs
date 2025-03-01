@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class VoronoiDiagramAdapter
+public static class VoronoiDiagramAdapter
 {
     public static VoronoiDiagram GenerateVoronoiDiagram(Rect bounds, int numSites, int seed)
     {
