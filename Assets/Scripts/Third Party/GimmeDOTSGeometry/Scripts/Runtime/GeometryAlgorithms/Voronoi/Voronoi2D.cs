@@ -157,15 +157,15 @@ namespace GimmeDOTSGeometry
             var delaunayHalfEdges = new NativeList<HalfEdge>(allocator);
             var triangulation = new NativeList<int3>(allocator);
 
-            allocations.allocatedMemory.Add(triangulation);
-            allocations.allocatedMemory.Add(rectRef);
-            allocations.allocatedMemory.Add(delaunayHalfEdges);
-            allocations.allocatedMemory.Add(voronoiHalfEdges);
-            allocations.allocatedMemory.Add(vertices);
-            allocations.allocatedMemory.Add(halfEdgeSites);
-            allocations.allocatedMemory.Add(dag);
-            allocations.allocatedMemory.Add(triangleBuffer);
-            allocations.allocatedMemory.Add(swappedIdx);
+            allocations.allocatedMemory.Add(triangulation);     // 0
+            allocations.allocatedMemory.Add(rectRef);           // 1
+            allocations.allocatedMemory.Add(delaunayHalfEdges); // 2
+            allocations.allocatedMemory.Add(voronoiHalfEdges);  //3
+            allocations.allocatedMemory.Add(vertices);          // 4
+            allocations.allocatedMemory.Add(halfEdgeSites);     // 5
+            allocations.allocatedMemory.Add(dag);               // 6
+            allocations.allocatedMemory.Add(triangleBuffer);    // 7
+            allocations.allocatedMemory.Add(swappedIdx);        // 8
 
             JobHandle nextHandle = dependsOn;
             if (points.Length <= 2)

@@ -43,6 +43,8 @@ public class VoronoiDiagram
     {
         this.mapBounds = mapBounds;
         this.numSites  = numSites;
+        this.sites     = new VoronoiSite[numSites];
+        this.cells     = new VoronoiCell[numSites];
         this.seed      = seed;
     }
 
@@ -94,6 +96,15 @@ public class VoronoiDiagram
     }
     public bool AddRange(IEnumerable<object> objs) => objs.All(Add);
 
+    public void SetBounds(Rect bounds) => mapBounds = bounds;
+    public void SetNumSites(int numSites) => this.numSites = numSites;
+    public void SetSeed(int seed) => this.seed = seed;
+
+    public void SetSites(VoronoiSite[] sites) => this.sites = sites;
+    public void SetVertices(VoronoiVertex[] vertices) => this.vertices = vertices;
+    public void SetEdges(VoronoiEdge[] edges) => this.edges = edges;
+    public void SetCells(VoronoiCell[] cells) => this.cells = cells;
+
     #endregion
 
     #region Getters
@@ -104,6 +115,7 @@ public class VoronoiDiagram
         return exits ? sites[index] : null;
     }
     public VoronoiSite GetSite(int index) => sites[index];
+    public VoronoiSite GetSite(Vector2 position) => GetSite($"VoronoiSite-{position}");
 
     public VoronoiVertex GetVertex(string id) 
     {
@@ -111,6 +123,7 @@ public class VoronoiDiagram
         return exits ? vertices[index] : null;
     }
     public VoronoiVertex GetVertex(int index) => vertices[index];
+    public VoronoiVertex GetVertex(Vector2 position) => GetVertex($"VoronoiVertex-{position}");
 
     public VoronoiEdge GetEdge(string id) 
     {
@@ -118,6 +131,8 @@ public class VoronoiDiagram
         return exits ? edges[index] : null;
     }
     public VoronoiEdge GetEdge(int index) => edges[index];
+    public VoronoiEdge GetEdge(Vector2 start, Vector2 end) => GetEdge($"VoronoiEdge-{start}->{end}");
+
 
     public VoronoiCell GetCell(string id) 
     {
@@ -125,6 +140,18 @@ public class VoronoiDiagram
         return exits ? cells[index] : null;
     }
     public VoronoiCell GetCell(int index) => cells[index]; 
+    public VoronoiCell GetCell(VoronoiSite site) => GetCell(site.Id);
+    public VoronoiCell GetCell(Vector2 position) => GetCell($"VoronoiCell-{position}");
+
+    public VoronoiCell[]   GetCells() => cells;
+    public VoronoiSite[]   GetSites() => sites;
+    public VoronoiVertex[] GetVertices() => vertices;
+    public VoronoiEdge[]   GetEdges() => edges;
+    public string[] GetSiteIds() => SiteIndexMap.Keys.ToArray();
+    public string[] GetVertexIds() => VertexIndexMap.Keys.ToArray();
+    public string[] GetEdgeIds() => EdgeIndexMap.Keys.ToArray();
+    public string[] GetCellIds() => CellIndexMap.Keys.ToArray();
+
 
     #endregion
 

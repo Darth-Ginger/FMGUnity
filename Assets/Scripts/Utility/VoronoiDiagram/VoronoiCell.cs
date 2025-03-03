@@ -46,6 +46,7 @@ public class VoronoiCell : IIdentifiable
         }
     }
     public void AddEdge(VoronoiEdge edge) => AddEdge(edge.Id);
+    public void AddEdge(Vector2 start, Vector2 end) => AddEdge(diagram.GetEdge(start, end).Id);
 
     public void AddNeighbour(string neighbour)
     {
@@ -63,6 +64,7 @@ public class VoronoiCell : IIdentifiable
         }
     }
     public void AddVertex(VoronoiVertex vertex) => AddVertex(vertex.Id);
+    public void AddVertex(Vector2 vertex) => AddVertex(diagram.GetVertex(vertex).Id);
     public string SetId() => $"VoronoiCell-{Site}";
 
     #endregion

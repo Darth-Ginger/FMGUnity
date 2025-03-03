@@ -9,6 +9,8 @@ using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Profiling;
 
+
+
 namespace GimmeDOTSGeometry.Samples
 {
     public class VoronoiSystem : MonoBehaviour
@@ -353,6 +355,15 @@ namespace GimmeDOTSGeometry.Samples
                     this.delaunayTrianglesMFs.Add(triangleMF);
                 }
             }
+
+            #region Voronoi Diagram Conversion
+
+            // Convert the output to VoronoiDiagram
+            VoronoiDiagram voronoiDiagram = new VoronoiDiagram();
+            voronoiDiagram.InitializeFromGimmeDOTSGeometry(this.bounds, this.points, ref this.polygons, ref this.polygonSites, allocations);
+            
+            #endregion
+
 
             this.StartCoroutine(this.MeasureRoutine());
 

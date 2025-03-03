@@ -5,37 +5,57 @@ public class VoronoiEdge : IIdentifiable
 {
     [ShowNonSerializedField] private VoronoiDiagram diagram;
     [SerializeField]         private string id = "null";
-    [SerializeField]         private string startVertex = "null";
-    [SerializeField]         private string endVertex   = "null";
+    [SerializeField]         private string startVertexId = "null";
+    [SerializeField]         private string endVertexId   = "null";
+
+    [SerializeField, ReadOnly] private Vector2 startVertex;
+    [SerializeField, ReadOnly] private Vector2 endVertex;
     [SerializeField]         private string leftSite    = "null";
     [SerializeField]         private string rightSite   = "null";
 
     public string Id => id;
-    public string StartVertexId => startVertex;
-    public string EndVertexId   => endVertex;
+    public string StartVertexId => startVertexId;
+    public string EndVertexId   => endVertexId;
     public string LeftSiteId    => leftSite;
     public string RightSiteId   => rightSite;
 
     public int Index => diagram.EdgeIndexMap.TryGetValue(id, out int index) ? index : -1;
 
-    public string SetId() => $"VoronoiEdge-{startVertex}->{endVertex}";
+    public string SetId() => $"VoronoiEdge-{startVertexId}->{endVertexId}";
 
     #region Constructors
     public VoronoiEdge() {}
 
-    public VoronoiEdge(VoronoiDiagram diagram, string startVertex, string endVertex)
+    public VoronoiEdge(VoronoiDiagram diagram, string startVertexId, string endVertexId)
     {
-        this.diagram     = diagram;
-        this.startVertex = startVertex;
-        this.endVertex   = endVertex;
-        this.id          = SetId();
+        this.diagram       = diagram;
+        this.startVertexId = startVertexId;
+        this.endVertexId   = endVertexId;
+        this.startVertex   = diagram.GetVertex(startVertexId).Position;
+        this.endVertex     = diagram.GetVertex(endVertexId).Position;
+        this.id            = SetId();
     }
 
-    public VoronoiEdge(VoronoiSite leftSite, VoronoiSite rightSite) : base()
+    public VoronoiEdge(VoronoiDiagram diagram, Vector2 startVertex, Vector2 endVertex)
     {
-        this.leftSite    = leftSite.Id;
-        this.rightSite   = rightSite.Id;
+        this.diagram       = diagram;
+        this.startVertexId = diagram.GetVertex(startVertex).Id;
+        this.endVertexId   = diagram.GetVertex(endVertex).Id;
+        this.startVertex   = startVertex;
+        this.endVertex     = endVertex;
+        this.id            = SetId();
     }
+
+    public VoronoiEdge(VoronoiDiagram diagram, VoronoiVertex startVertex, VoronoiVertex endVertex)
+    {
+        this.diagram       = diagram;
+        this.startVertexId = startVertex.Id;
+        this.endVertexId   = endVertex.Id;
+        this.startVertex   = startVertex.Position;
+        this.endVertex     = endVertex.Position;
+        this.id            = SetId();
+    }
+    
     #endregion
 
     #region Setters
@@ -43,34 +63,46 @@ public class VoronoiEdge : IIdentifiable
     /// <summary>
     /// Sets the start vertex of the edge. The start vertex should be a valid <see cref="VoronoiVertex"/> identifier.
     /// </summary>
-    /// <param name="startVertex">The start vertex of the edge.</param>
+    /// <param name="startVertexId">The start vertex of the edge.</param>
     /// <returns><c>true</c> if the start vertex was set successfully, <c>false</c> otherwise.</returns>
-    public bool SetStartVertex(string startVertex)
+    public bool SetStartVertex(string startVertexId)
     {
-        if (!startVertex.Contains("VoronoiVertex") || 
-            this.startVertex != "null") 
+        if (!startVertexId.Contains("VoronoiVertex") || 
+            this.startVertexId != "null") 
                 return false;
 
-        this.startVertex = startVertex;
+        this.startVertexId = startVertexId;
         return true;
     }
-    public bool SetStartVertex(VoronoiVertex startVertex) => SetStartVertex(startVertex.Id);
+    public bool SetStartVertex(VoronoiVertex startVertexId) => SetStartVertex(startVertexId.Id);
+    public bool SetStartVertex(Vector2 startVertex)
+    {
+        var vert = diagram.GetVertex(startVertex);
+        if (vert == null) return false;
+        return SetStartVertex(vert.Id);
+    }
 
     /// <summary>
     /// Sets the end vertex of the edge. The end vertex should be a valid <see cref="VoronoiVertex"/> identifier.
     /// </summary>
-    /// <param name="endVertex">The end vertex of the edge.</param>
+    /// <param name="endVertexId">The end vertex of the edge.</param>
     /// <returns><c>true</c> if the end vertex was set successfully, <c>false</c> otherwise.</returns>
-    public bool SetEndVertex(string endVertex)
+    public bool SetEndVertex(string endVertexId)
     {
-        if (!endVertex.Contains("VoronoiVertex") ||
-            this.endVertex != "null") 
+        if (!endVertexId.Contains("VoronoiVertex") ||
+            this.endVertexId != "null") 
                 return false;
 
-        this.endVertex = endVertex;
+        this.endVertexId = endVertexId;
         return true;
     }
-    public bool SetEndVertex(VoronoiVertex endVertex) => SetEndVertex(endVertex.Id);
+    public bool SetEndVertex(VoronoiVertex endVertexId) => SetEndVertex(endVertexId.Id);
+    public bool SetEndVertex(Vector2 endVertex)
+    {
+        var vert = diagram.GetVertex(endVertex);
+        if (vert == null) return false;
+        return SetEndVertex(vert.Id);
+    }
 
     /// <summary>
     /// Sets the left site of the edge. The left site should be a valid <see cref="VoronoiSite"/> identifier.
@@ -112,7 +144,7 @@ public class VoronoiEdge : IIdentifiable
 
     public bool Initialize()
     {
-        if (startVertex == "null" || endVertex == "null") return false;
+        if (startVertexId == "null" || endVertexId == "null") return false;
 
         id = SetId();
         return true;
@@ -130,10 +162,10 @@ public class VoronoiEdge : IIdentifiable
     /// <returns>The length of the edge.</returns>
     public float EdgeLength()
     {
-        if (startVertex == "null" || endVertex == "null") return 0f;
+        if (startVertexId == "null" || endVertexId == "null") return 0f;
 
-        var start = diagram.GetVertex(startVertex).Position;
-        var end   = diagram.GetVertex(endVertex).Position;
+        var start = diagram.GetVertex(startVertexId).Position;
+        var end   = diagram.GetVertex(endVertexId).Position;
 
         return Vector2.Distance(start, end);
     }
@@ -147,11 +179,11 @@ public class VoronoiEdge : IIdentifiable
     public bool PointOnEdge(Vector2 point, float tolerance = 0.001f)
     {
         // Check that point has both start and end vertices
-        if (startVertex == "null" || endVertex == "null") return false;
+        if (startVertexId == "null" || endVertexId == "null") return false;
 
         // Calculate the Cross Product (xProduct). If close to zero, point is on the edge.
-        Vector2 lineVector = diagram.GetVertex(endVertex).Position - diagram.GetVertex(startVertex).Position;
-        Vector2 pointVector = point - diagram.GetVertex(startVertex).Position;
+        Vector2 lineVector = diagram.GetVertex(endVertexId).Position - diagram.GetVertex(startVertexId).Position;
+        Vector2 pointVector = point - diagram.GetVertex(startVertexId).Position;
 
         float xProduct = lineVector.x * pointVector.y - lineVector.y * pointVector.x;
 

@@ -1,6 +1,6 @@
 {
     "name": "Utility",
-    "rootNamespace": "",
+    "rootNamespace": "FMGUnity",
     "references": [
         "GUID:35a29554742ef3e46970458ac69dc36d",
         "GUID:776d03a35f1b52c4a9aed9f56d7b4229",
@@ -14,11 +14,12 @@
         "GUID:4b31e538861ead24c9f7da58a4e070dc",
         "GUID:b8d8183eae37d7640a24dce53e12001a",
         "GUID:9db8f8026ef177940b919689cae649f8",
-        "GUID:d8b63aba1907145bea998dd612889d6b"
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:e0cd26848372d4e5c891c569017e11f1"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
