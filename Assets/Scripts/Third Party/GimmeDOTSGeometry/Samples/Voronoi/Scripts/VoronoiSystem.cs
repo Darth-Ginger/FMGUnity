@@ -270,6 +270,7 @@ namespace GimmeDOTSGeometry.Samples
 
         public void Create()
         {
+            Debug.Log("Creating Voronoi Diagram");
             this.Dispose();
 
             this.velocities = new NativeList<float2>(Allocator.Persistent);
@@ -356,13 +357,13 @@ namespace GimmeDOTSGeometry.Samples
                 }
             }
 
-            #region Voronoi Diagram Conversion
+            // #region Voronoi Diagram Conversion
 
-            // Convert the output to VoronoiDiagram
-            VoronoiDiagram voronoiDiagram = new VoronoiDiagram();
-            voronoiDiagram.InitializeFromGimmeDOTSGeometry(this.bounds, this.points, ref this.polygons, ref this.polygonSites, allocations);
+            // // Convert the output to VoronoiDiagram
+            // VoronoiDiagram voronoiDiagram = new VoronoiDiagram();
+            // voronoiDiagram.InitializeFromGimmeDOTSGeometry(this.bounds, this.points, ref this.polygons, ref this.polygonSites, allocations);
             
-            #endregion
+            // #endregion
 
 
             this.StartCoroutine(this.MeasureRoutine());
@@ -412,7 +413,11 @@ namespace GimmeDOTSGeometry.Samples
                     this.cellOutlines.Add(cellOutline);
                     this.cellOutlineMFs.Add(cellOutlineMF);
 
-                    DCEL cellDCEL = NativePolygon2D.ConvertToDCEL(this.polygons[i], i);
+                    //@note : Added myself
+                    var cellDCEL = NativePolygon2D.ConvertToDCEL(this.polygons[i], i);
+                    var face = cellDCEL.faces[0];
+                    face.id = i;
+                    cellDCEL.faces[0] = face;
                     cellsDCELs.Add(cellDCEL);
                 } else
                 {

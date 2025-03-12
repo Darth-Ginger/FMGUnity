@@ -21,7 +21,7 @@ public class VoronoiEdge : IIdentifiable
 
     public int Index => diagram.EdgeIndexMap.TryGetValue(id, out int index) ? index : -1;
 
-    public string SetId() => $"VoronoiEdge-{startVertexId}->{endVertexId}";
+    public string SetId() => $"VoronoiEdge-{startVertex}->{endVertex}";
 
     #region Constructors
     public VoronoiEdge() {}

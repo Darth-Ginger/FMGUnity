@@ -8,40 +8,38 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
 {
     #region Private Fields
     private readonly object _syncRoot = new object();
-    private Dictionary<TKey, TValue> _map
-    {
-        get
-        {
-            if (_map == null ||
-                _keys.Count != _values.Count ||
-                _map.Count  != _keys.Count ||
-                _map.Count  != _values.Count)
-            {
-                _map = new Dictionary<TKey, TValue>();
-                for (int i = 0; i < _values.Count; i++)
-                {
-                    _map.Add(_keys[i], _values[i]);
-                }
-            }
-            return _map;
-        }
+    private Dictionary<TKey, TValue> _map;
 
-        set => _map = value;
-    }
-
-    [SerializeField] private List<TKey>   _keys;
+    [SerializeField] private List<TKey> _keys;
     [SerializeField] private List<TValue> _values;
 
     #endregion
 
     #region Public Properties
     public object SyncRoot => _syncRoot;
-    public Dictionary<TKey, TValue> Map => _map;
+    public Dictionary<TKey, TValue> Map
+    {
+        get
+        {
+            if (_keys == null || _values == null ||
+                _keys.Count != _values.Count ||
+                _map.Count != _keys.Count ||
+                _map.Count != _values.Count)
+            {
+                _map.Clear();
+                for (int i = 0; i < _keys.Count; i++)
+                {
+                    _map[_keys[i]] = _values[i];
+                }
+            }
+            return _map;
+        }
+    }
 
-    public List<TKey> Keys     => _keys;
+    public List<TKey> Keys => _keys;
     public List<TValue> Values => _values;
 
-    public TValue this[TKey key] => _map[key];
+    public TValue this[TKey key] => Map[key];
 
     #endregion
 
@@ -52,14 +50,16 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
     #region Constructors
     public SerialMap()
     {
-        _keys   = new List<TKey>();
+        _keys = new List<TKey>();
         _values = new List<TValue>();
+        _map = new Dictionary<TKey, TValue>();
     }
 
     public SerialMap(int capacity)
     {
-        _keys   = new List<TKey>(capacity);
+        _keys = new List<TKey>(capacity);
         _values = new List<TValue>(capacity);
+        _map = new Dictionary<TKey, TValue>(capacity);
     }
 
     #endregion
@@ -71,9 +71,11 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
         lock (_syncRoot)
         {
             bool success = !_keys.Contains(key) && !_values.Contains(value);
-            if (success) {
+            if (success)
+            {
                 _keys.Add(key);
                 _values.Add(value);
+                _map[key] = value;
             }
             return success;
         }
@@ -94,6 +96,7 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
             value = _values[index];
             _keys.RemoveAt(index);
             _values.RemoveAt(index);
+            _map.Remove(key);
             return true;
         }
     }
@@ -104,6 +107,7 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
         {
             _keys.Clear();
             _values.Clear();
+            _map.Clear();
         }
     }
 
@@ -111,9 +115,9 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
 
     #region Getters
 
-    public bool ContainsKey(TKey key) => _map.ContainsKey(key);
-    public bool ContainsValue(TValue value) => _map.ContainsValue(value);
-    public bool TryGetValue(TKey key, out TValue value) => _map.TryGetValue(key, out value);
+    public bool ContainsKey(TKey key) => Map.ContainsKey(key);
+    public bool ContainsValue(TValue value) => Map.ContainsValue(value);
+    public bool TryGetValue(TKey key, out TValue value) => Map.TryGetValue(key, out value);
     public bool TryGetValueIndex(TKey key, out int index)
     {
         index = _keys.IndexOf(key);
@@ -121,7 +125,6 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
     }
 
     #endregion
-
 
     public void CopyTo(Array array, int index)
     {
@@ -137,7 +140,7 @@ public class SerialMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, 
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        foreach (var kvp in _map)
+        foreach (var kvp in Map)
         {
             yield return kvp;
         }

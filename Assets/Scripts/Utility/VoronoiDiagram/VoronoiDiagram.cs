@@ -10,23 +10,23 @@ public class VoronoiDiagram
     [SerializeField] private int seed;
 
     // Private backing Arrays
-    [SerializeField] private VoronoiSite[]   sites;
-    [SerializeField] private VoronoiVertex[] vertices;
-    [SerializeField] private VoronoiEdge[]   edges;
-    [SerializeField] private VoronoiCell[]   cells;
+    [SerializeField] private List<VoronoiSite>   sites;
+    [SerializeField] private List<VoronoiVertex> vertices;
+    [SerializeField] private List<VoronoiEdge>  edges;
+    [SerializeField] private List<VoronoiCell>   cells;
 
     // Private mapping Dictionaries
-    [SerializeField] public SerialMap<string, int> SiteIndexMap;
-    [SerializeField] public SerialMap<string, int> VertexIndexMap;
-    [SerializeField] public SerialMap<string, int> EdgeIndexMap;
-    [SerializeField] public SerialMap<string, int> CellIndexMap;
+    [SerializeField] public SerialMap<string, int> SiteIndexMap = new();
+    [SerializeField] public SerialMap<string, int> VertexIndexMap = new();
+    [SerializeField] public SerialMap<string, int> EdgeIndexMap = new();
+    [SerializeField] public SerialMap<string, int> CellIndexMap = new();
 
 
     // Public properties
-    public VoronoiSite[]   Sites => sites;
-    public VoronoiVertex[] Vertices => vertices;
-    public VoronoiEdge[]   Edges => edges;
-    public VoronoiCell[]   Cells => cells;
+    public List<VoronoiSite>   Sites => sites;
+    public List<VoronoiVertex> Vertices => vertices;
+    public List<VoronoiEdge>  Edges => edges;
+    public List<VoronoiCell>   Cells => cells;
     
     
     public Rect MapBounds => mapBounds;
@@ -43,12 +43,14 @@ public class VoronoiDiagram
     {
         this.mapBounds = mapBounds;
         this.numSites  = numSites;
-        this.sites     = new VoronoiSite[numSites];
-        this.cells     = new VoronoiCell[numSites];
+        this.sites     = new();
+        this.cells     = new();
+        this.edges     = new();
+        this.vertices  = new();
         this.seed      = seed;
     }
 
-    public VoronoiDiagram(Rect mapBounds, int numSites, int seed, VoronoiSite[] sites, VoronoiVertex[] vertices, VoronoiEdge[] edges, VoronoiCell[] cells)
+    public VoronoiDiagram(Rect mapBounds, int numSites, int seed, List<VoronoiSite> sites, List<VoronoiVertex> vertices, List<VoronoiEdge>edges, List<VoronoiCell> cells)
     {
         this.mapBounds = mapBounds;
         this.numSites  = numSites;
@@ -74,22 +76,22 @@ public class VoronoiDiagram
     {
         switch (obj)
         {
-            case VoronoiSite site:
+            case VoronoiSite site when site != null:
                 if (SiteIndexMap.ContainsKey(site.Id)) return false;
-                sites.Append(site);
-                return SiteIndexMap.Add(site.Id, sites.Length - 1);
-            case VoronoiVertex vertex:
+                sites.Add(site);
+                return SiteIndexMap.Add(site.Id, sites.Count - 1);
+            case VoronoiVertex vertex when vertex != null:
                 if (VertexIndexMap.ContainsKey(vertex.Id)) return false;
-                vertices.Append(vertex);
-                return VertexIndexMap.Add(vertex.Id, vertices.Length - 1);
-            case VoronoiEdge edge:
+                vertices.Add(vertex);
+                return VertexIndexMap.Add(vertex.Id, vertices.Count - 1);
+            case VoronoiEdge edge when edge != null:
                 if (EdgeIndexMap.ContainsKey(edge.Id)) return false;
-                edges.Append(edge);
-                return EdgeIndexMap.Add(edge.Id, edges.Length - 1);
-            case VoronoiCell cell:
+                edges.Add(edge);
+                return EdgeIndexMap.Add(edge.Id, edges.Count - 1);
+            case VoronoiCell cell when cell != null:
                 if (CellIndexMap.ContainsKey(cell.Id)) return false;
-                cells.Append(cell);
-                return CellIndexMap.Add(cell.Id, cells.Length - 1);
+                cells.Add(cell);
+                return CellIndexMap.Add(cell.Id, cells.Count - 1);
             default:
                 return false;
         }
@@ -100,10 +102,10 @@ public class VoronoiDiagram
     public void SetNumSites(int numSites) => this.numSites = numSites;
     public void SetSeed(int seed) => this.seed = seed;
 
-    public void SetSites(VoronoiSite[] sites) => this.sites = sites;
-    public void SetVertices(VoronoiVertex[] vertices) => this.vertices = vertices;
-    public void SetEdges(VoronoiEdge[] edges) => this.edges = edges;
-    public void SetCells(VoronoiCell[] cells) => this.cells = cells;
+    public void SetSites   (List<VoronoiSite> sites)        => this.sites = sites;
+    public void SetVertices(List<VoronoiVertex> vertices)   => this.vertices = vertices;
+    public void SetEdges   (List<VoronoiEdge> edges)        => this.edges = edges;
+    public void SetCells   (List<VoronoiCell> cells)        => this.cells = cells;
 
     #endregion
 
@@ -143,10 +145,10 @@ public class VoronoiDiagram
     public VoronoiCell GetCell(VoronoiSite site) => GetCell(site.Id);
     public VoronoiCell GetCell(Vector2 position) => GetCell($"VoronoiCell-{position}");
 
-    public VoronoiCell[]   GetCells() => cells;
-    public VoronoiSite[]   GetSites() => sites;
-    public VoronoiVertex[] GetVertices() => vertices;
-    public VoronoiEdge[]   GetEdges() => edges;
+    public List<VoronoiCell>   GetCells() => cells;
+    public List<VoronoiSite>   GetSites() => sites;
+    public List<VoronoiVertex> GetVertices() => vertices;
+    public List<VoronoiEdge>  GetEdges() => edges;
     public string[] GetSiteIds() => SiteIndexMap.Keys.ToArray();
     public string[] GetVertexIds() => VertexIndexMap.Keys.ToArray();
     public string[] GetEdgeIds() => EdgeIndexMap.Keys.ToArray();
@@ -170,14 +172,14 @@ public class VoronoiDiagram
 
     public void Clear()
     {
-        sites = new VoronoiSite[0];
-        vertices = new VoronoiVertex[0];
-        edges = new VoronoiEdge[0];
-        cells = new VoronoiCell[0];
-        SiteIndexMap.Clear();
-        VertexIndexMap.Clear();
-        EdgeIndexMap.Clear();
-        CellIndexMap.Clear();
+        sites    = new();
+        vertices = new();
+        edges    = new();
+        cells    = new();
+        SiteIndexMap?.Clear();
+        VertexIndexMap?.Clear();
+        EdgeIndexMap?.Clear();
+        CellIndexMap?.Clear();
     }
     #endregion
 

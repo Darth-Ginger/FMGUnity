@@ -6,8 +6,8 @@ public class VoronoiSite : VoronoiVertex, IIdentifiable
 
     public VoronoiSite(Vector2 position) : base(position)
     {
-        this.id = SetId();
         this.position = position;
+        this.id = SetId();
     }
 
     public new string SetId() =>  $"VoronoiSite-{Position}";

@@ -11,24 +11,25 @@ public static class VoronoiDiagramAdapter
     public static VoronoiDiagram GenerateVoronoiDiagram(Rect bounds, int numSites, int seed)
     {
         // Use GimmeDOTSGeometry to generate the Voronoi diagram
-        NativeArray<float2> points = new NativeArray<float2>(numSites, Allocator.Temp);
-        NativeArray<NativePolygon2D> polygons = new NativeArray<NativePolygon2D>(numSites, Allocator.Temp);
-        NativeArray<int> polygonSites = new NativeArray<int>(numSites, Allocator.Temp);
+        NativeArray<float2> points = new NativeArray<float2>(numSites, Allocator.Persistent);
+        NativeArray<NativePolygon2D> polygons = new NativeArray<NativePolygon2D>(numSites, Allocator.Persistent);
+        NativeArray<int> polygonSites = new NativeArray<int>(numSites, Allocator.Persistent);
 
         // Generate points and calculate Voronoi diagram
         Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)seed);
         for (int i = 0; i < numSites; i++)
         {
-            polygons[i] = new NativePolygon2D(Allocator.Temp, 3);
+            polygons[i] = new NativePolygon2D(Allocator.Persistent, 3);
             points[i] = new float2(random.NextFloat(bounds.xMin, bounds.xMax), random.NextFloat(bounds.yMin, bounds.yMax));
         }
 
-        JobAllocations jobAllocations;
-        GimmeDOTSGeometry.Voronoi2D.CalculateVoronoi(bounds, points, ref polygons, ref polygonSites, out jobAllocations);
+        
+        var voronoiJob = Voronoi2D.CalculateVoronoi(bounds, points, ref polygons, ref polygonSites, out var jobAllocations);
+        voronoiJob.Complete();
 
         // Convert the output to VoronoiDiagram
         VoronoiDiagram voronoiDiagram = new VoronoiDiagram(bounds, numSites, seed);
-        voronoiDiagram.InitializeFromGimmeDOTSGeometry(bounds, points, ref polygons, ref polygonSites, jobAllocations);
+        voronoiDiagram.InitializeFromGimmeDOTSGeometry(bounds, seed, points, ref polygons, ref polygonSites, jobAllocations);
 
         // Dispose of native arrays
         points.Dispose();
@@ -39,7 +40,7 @@ public static class VoronoiDiagramAdapter
         return voronoiDiagram;
     }
 
-    public static void InitializeFromGimmeDOTSGeometry(this VoronoiDiagram voronoiDiagram, Rect bounds, 
+    public static void InitializeFromGimmeDOTSGeometry(this VoronoiDiagram voronoiDiagram, Rect bounds, int seed,
         NativeArray<float2> points, ref NativeArray<NativePolygon2D> polygons, ref NativeArray<int> polygonSites,
         JobAllocations jobAllocations)
     {
@@ -197,6 +198,13 @@ public static class VoronoiDiagramAdapter
         for (int i = 0; i < points.Length; i++)
         {
             var siteId = voronoiDiagram.GetSite(points[i]).Id;
+
+            if (siteId == "null")
+            {
+                Debug.LogError($"SiteId for point {points[i]}is null");
+                continue;
+            }
+
             allocationMapping[siteId] = new()
             {
                 { "site",       new List<object>() },

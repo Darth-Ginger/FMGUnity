@@ -115,8 +115,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.VisualScripting.Setti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GimmeDOTSGeometry.Tests", "GimmeDOTSGeometry.Tests.csproj", "{0C488E8A-15D3-E18D-520A-23F6E3C793B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility.csproj", "{0C3BF07E-C859-4F21-810F-54818A8C52A8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.InputSystem.TestFramework", "Unity.InputSystem.TestFramework.csproj", "{70BCAE86-0937-C674-A149-C22786EFF493}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.ShaderGraph.Utilities", "Unity.ShaderGraph.Utilities.csproj", "{FAEC2B69-413D-02FD-8F83-104D3276927C}"
@@ -381,10 +379,6 @@ Global
 		{0C488E8A-15D3-E18D-520A-23F6E3C793B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C488E8A-15D3-E18D-520A-23F6E3C793B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C488E8A-15D3-E18D-520A-23F6E3C793B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0C3BF07E-C859-4F21-810F-54818A8C52A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0C3BF07E-C859-4F21-810F-54818A8C52A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0C3BF07E-C859-4F21-810F-54818A8C52A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0C3BF07E-C859-4F21-810F-54818A8C52A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{70BCAE86-0937-C674-A149-C22786EFF493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{70BCAE86-0937-C674-A149-C22786EFF493}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70BCAE86-0937-C674-A149-C22786EFF493}.Release|Any CPU.ActiveCfg = Release|Any CPU

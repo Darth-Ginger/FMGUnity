@@ -65,7 +65,7 @@ public class VoronoiCell : IIdentifiable
     }
     public void AddVertex(VoronoiVertex vertex) => AddVertex(vertex.Id);
     public void AddVertex(Vector2 vertex) => AddVertex(diagram.GetVertex(vertex).Id);
-    public string SetId() => $"VoronoiCell-{Site}";
+    public string SetId() => $"VoronoiCell-{diagram.GetSite(Site).Position}";
 
     #endregion
 

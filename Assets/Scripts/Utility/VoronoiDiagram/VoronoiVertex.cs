@@ -18,8 +18,8 @@ public class VoronoiVertex : IIdentifiable
 
     public VoronoiVertex(Vector2 position)
     {
-        this.id = SetId();
         this.position = position;
+        this.id = SetId();
     }
 
     public VoronoiVertex(VoronoiDiagram diagram, Vector2 position) : this(position) => this.diagram = diagram;
@@ -36,7 +36,7 @@ public class VoronoiVertex : IIdentifiable
     public string SetId() 
     {
         if (positionString == "null")
-            positionString = $"{position.x},{position.y}";
+            positionString = $"{Position}";
             return $"VoronoiVertex-{positionString}"; ;
     }
 
